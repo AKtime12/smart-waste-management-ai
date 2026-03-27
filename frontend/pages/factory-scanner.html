@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory QR Scanner - Smart Waste Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fb 0%, #e8f0fe 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .scanner-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #reader {
+            width: 100%;
+            min-height: 400px;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .scan-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            border: 2px solid #22c55e;
+            border-radius: 1rem;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22c55e, #22c55e, transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .result-card.success {
+            display: block;
+            border-left: 4px solid #22c55e;
+        }
+
+        .result-card.error {
+            display: block;
+            border-left: 4px solid #ef4444;
+        }
+
+        .result-content-inner {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .camera-section {
+            margin-top: 1rem;
+        }
+
+        .camera-preview {
+            background: #000;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        #camera-video {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .photo-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        #photo {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        .btn-primary {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e2e8f0;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-bar {
+            background: #1e293b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 1rem;
+            left: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1100;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .notification-success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .notification-error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .pending-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .pending-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-industry"></i> Factory Verification Station</h1>
+            <p>Scan collection QR code, take photo, and verify waste segregation</p>
+        </div>
+
+        <div class="status-bar" id="status-bar">
+            <span><i class="fas fa-circle-notch fa-spin"></i> Ready</span>
+            <span id="connection-status">Online</span>
+        </div>
+
+        <!-- QR Scanner Section -->
+        <div class="scanner-card">
+            <div class="video-container">
+                <div id="reader"></div>
+                <div class="scan-overlay" id="scan-overlay">
+                    <div class="scan-frame"></div>
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="start-btn" class="btn-primary">
+                <i class="fas fa-camera"></i> Start Scanner
+            </button>
+            <button id="stop-btn" class="btn-secondary hidden">
+                <i class="fas fa-stop"></i> Stop Scanner
+            </button>
+        </div>
+
+        <!-- Camera & Verification Section -->
+        <div class="scanner-card camera-section" id="camera-section" style="display: none;">
+            <div class="video-container">
+                <video id="camera-video" autoplay muted></video>
+            </div>
+            <div id="camera-error" class="error-message hidden"></div>
+            <div class="photo-preview">
+                <img id="photo" alt="Captured photo">
+            </div>
+            <div class="button-group">
+                <button id="capture-btn" class="btn-primary" disabled>Take Photo</button>
+                <button id="verify-btn" class="btn-primary btn-warning" disabled>Verify & Award Points</button>
+            </div>
+        </div>
+
+        <!-- Verification Result -->
+        <div id="result-card" class="result-card">
+            <div id="result-content"></div>
+        </div>
+
+        <!-- Pending Verifications (Optional) -->
+        <div class="scanner-card">
+            <h3 style="padding: 1rem;"><i class="fas fa-clock"></i> Pending Verifications</h3>
+            <div id="pending-list" class="pending-list">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <button id="back-btn" class="btn-secondary" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let html5QrCode = null;
+        let isScanning = false;
+        let currentCollectionId = null;
+        let stream = null;
+        let capturedPhoto = null;
+
+        // DOM elements
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const cameraSection = document.getElementById('camera-section');
+        const captureBtn = document.getElementById('capture-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const cameraVideo = document.getElementById('camera-video');
+        const photoImg = document.getElementById('photo');
+        const resultCard = document.getElementById('result-card');
+        const resultContent = document.getElementById('result-content');
+        const scanOverlay = document.getElementById('scan-overlay');
+        const cameraError = document.getElementById('camera-error');
+        const pendingListDiv = document.getElementById('pending-list');
+
+        function showNotification(message, type) {
+            const n = document.createElement('div');
+            n.className = `notification notification-${type}`;
+            n.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`;
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+
+        function goBack() {
+            window.location.href = '/dashboard/admin.html'; // Adjust as needed
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // QR Scanner
+        async function startScanner() {
+            if (isScanning) return;
+            try {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<div class="loading-spinner"></div> Starting...';
+                html5QrCode = new Html5Qrcode("reader");
+                scanOverlay.classList.remove('hidden');
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    onScanError
+                );
+                isScanning = true;
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+                showNotification('Scanner started. Point camera at QR code.', 'success');
+            } catch (err) {
+                console.error('Scanner error:', err);
+                showNotification('Camera access denied or not supported', 'error');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+                scanOverlay.classList.add('hidden');
+            }
+        }
+
+        async function stopScanner() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    await html5QrCode.clear();
+                } catch (err) { console.warn(err); }
+            }
+            isScanning = false;
+            scanOverlay.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            showNotification('Scanner stopped', 'success');
+        }
+
+        function onScanSuccess(decodedText) {
+            console.log('✅ QR Code detected:', decodedText);
+            currentCollectionId = decodedText;
+            showNotification('Collection QR detected! Opening camera.', 'success');
+            stopScanner();
+            showCameraSection();
+        }
+
+        function onScanError(err) {
+            // ignore
+        }
+
+        // Camera Section
+        function showCameraSection() {
+            cameraSection.style.display = 'block';
+            startCamera();
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                cameraVideo.srcObject = stream;
+                await cameraVideo.play();
+                captureBtn.disabled = false;
+                cameraError.classList.add('hidden');
+            } catch (err) {
+                console.error('Camera error:', err);
+                cameraError.textContent = 'Could not access camera: ' + err.message;
+                cameraError.classList.remove('hidden');
+                captureBtn.disabled = true;
+            }
+        }
+
+        function capturePhoto() {
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraVideo.videoWidth;
+            canvas.height = cameraVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            capturedPhoto = dataUrl;
+            photoImg.src = dataUrl;
+            photoImg.style.display = 'block';
+            verifyBtn.disabled = false;
+        }
+
+        // Verification
+        async function verifyCollection() {
+            if (!currentCollectionId) {
+                showNotification('No collection scanned. Please scan a QR code first.', 'error');
+                return;
+            }
+            if (!capturedPhoto) {
+                showNotification('Please capture a photo first.', 'error');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<div class="loading-spinner"></div> Verifying...';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/factory/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        collectionId: currentCollectionId,
+                        imageUrl: capturedPhoto
+                    })
+                });
+
+                const data = await response.json();
+                resultCard.className = data.success ? 'result-card success' : 'result-card error';
+                resultContent.innerHTML = `
+                    <div class="result-content-inner" style="${!data.success ? 'background: #fee2e2;' : ''}">
+                        <i class="fas ${data.success ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color: ${data.success ? '#22c55e' : '#ef4444'}; font-size: 1.5rem;"></i>
+                        <h3 style="margin: 0.5rem 0;">${data.message}</h3>
+                        ${data.success && data.verified ? `<p>✅ Bonus points: +${data.bonusPoints}</p>` : ''}
+                        <button onclick="resetVerification()" class="btn-primary" style="margin-top: 1rem;">Scan Another</button>
+                    </div>
+                `;
+                resultCard.style.display = 'block';
+
+                // Refresh pending list after verification
+                loadPendingVerifications();
+
+                // Reset camera and scanner for next use
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                cameraSection.style.display = 'none';
+                photoImg.style.display = 'none';
+                captureBtn.disabled = true;
+                verifyBtn.disabled = true;
+                currentCollectionId = null;
+                capturedPhoto = null;
+                startScanner();
+            } catch (error) {
+                console.error('Verification error:', error);
+                showNotification('Verification failed: ' + error.message, 'error');
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Verify & Award Points';
+            }
+        }
+
+        function resetVerification() {
+            resultCard.style.display = 'none';
+            resultContent.innerHTML = '';
+            startScanner();
+        }
+
+        // Pending Verifications List
+        async function loadPendingVerifications() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/factory/pending`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.collections || data.collections.length === 0) {
+                    pendingListDiv.innerHTML = '<p>No pending verifications.</p>';
+                    return;
+                }
+                let html = '';
+                for (const c of data.collections) {
+                    html += `
+                        <div class="pending-item">
+                            <div>
+                                <strong>ID:</strong> ${c.id.slice(0,8)}...<br>
+                                <strong>Household:</strong> ${c.household?.name || 'Unknown'}<br>
+                                <strong>Waste Type:</strong> ${c.segregationQuality || 'N/A'}<br>
+                                <strong>Weight:</strong> ${c.wasteWeight || 0} kg
+                            </div>
+                            <button class="btn-primary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="quickVerify('${c.id}')">Quick Verify</button>
+                        </div>
+                    `;
+                }
+                pendingListDiv.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load pending:', error);
+                pendingListDiv.innerHTML = '<p>Error loading data.</p>';
+            }
+        }
+
+        window.quickVerify = async function(collectionId) {
+            const imageUrl = prompt('Enter image URL (or leave blank for demo):', 'https://example.com/waste.jpg');
+            if (!imageUrl) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/factory/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ collectionId, imageUrl })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadPendingVerifications();
+            } catch (error) {
+                alert('Verification failed.');
+            }
+        };
+
+        // Auth
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please login first', 'error');
+                setTimeout(() => window.location.href = '/login.html', 2000);
+                return false;
+            }
+            try {
+                const res = await fetch(`${API_URL}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Unauthorized');
+                return true;
+            } catch (err) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        startBtn.addEventListener('click', startScanner);
+        stopBtn.addEventListener('click', stopScanner);
+        captureBtn.addEventListener('click', capturePhoto);
+        verifyBtn.addEventListener('click', verifyCollection);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isScanning) stopScanner();
+        });
+
+        checkAuth().then(() => loadPendingVerifications());
+    </script>
+</body>
+</html>

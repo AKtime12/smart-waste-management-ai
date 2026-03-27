@@ -954,6 +954,12 @@
             <div id="factory-page" class="page">
                 <div class="page-header">
                     <h1><i class="fas fa-industry"></i> Factory Verifications</h1>
+                    <div class="flex-between" style="margin-bottom: 1rem;">
+                    <p>Verify waste collections at the recycling center.</p>
+                    <a href="/dashboard/factory.html" target="_blank" class="btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Open Full Factory Dashboard
+                    </a>
+                </div>
                     <p>Verify waste collections at the recycling center</p>
                 </div>
                 <div class="reports-table" id="pending-verifications">
@@ -1063,29 +1069,29 @@
         // DASHBOARD DATA
         // ============================================
         async function loadDashboardData() {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/admin/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('total-users').textContent = (data.totalUsers || 0).toLocaleString();
-                    document.getElementById('total-collections').textContent = (data.totalCollections || 0).toLocaleString();
-                    document.getElementById('total-points').textContent = (data.totalPoints || 0).toLocaleString();
-                    document.getElementById('carbon-saved').textContent = (data.carbonSaved || 0).toFixed(1);
-                    if (data.monthlyData && collectionChart) updateCollectionChart(data.monthlyData);
-                    const demoNotice = document.getElementById('demo-notice');
-                    if (demoNotice) demoNotice.style.display = 'none';
-                } else {
-                    useDemoData();
-                }
-            } catch (error) {
-                console.error('Failed to load dashboard:', error);
-                useDemoData();
-            }
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/dashboard`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('total-users').textContent = (data.totalUsers || 0).toLocaleString();
+            document.getElementById('total-collections').textContent = (data.totalCollections || 0).toLocaleString();
+            document.getElementById('total-points').textContent = (data.totalPoints || 0).toLocaleString();
+            // FIX: carbonSaved is already a string with one decimal
+            document.getElementById('carbon-saved').textContent = data.carbonSaved !== undefined ? data.carbonSaved : '0.0';
+            if (data.monthlyData && collectionChart) updateCollectionChart(data.monthlyData);
+            const demoNotice = document.getElementById('demo-notice');
+            if (demoNotice) demoNotice.style.display = 'none';
+        } else {
+            useDemoData();
         }
-
+    } catch (error) {
+        console.error('Failed to load dashboard:', error);
+        useDemoData();
+    }
+}
         function useDemoData() {
             const demoNotice = document.getElementById('demo-notice');
             if (demoNotice) demoNotice.style.display = 'flex';

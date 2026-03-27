@@ -1388,3 +1388,8 @@ body {
 .text-center {
     text-align: center;
 }
+
+.back-admin {
+    background: #3b82f6;
+    margin-right: 0.5rem;
+}
