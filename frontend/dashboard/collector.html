@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collector Dashboard - Smart Waste Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; }
+        .header {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: -1.5rem auto 0;
+            padding: 0 2rem 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 1rem;
+            background: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #22c55e;
+        }
+        .stat-info h3 { font-size: 1.5rem; font-weight: 700; }
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 500;
+        }
+        .btn-primary:hover { background: #16a34a; }
+        .logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .bin-item, .collection-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e2e8f0;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="flex-between">
+            <div>
+                <h1>Welcome, <span id="collector-name">Collector</span>!</h1>
+                <p>Your waste collection dashboard</p>
+            </div>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="error-msg" class="error"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><h3 id="today-collections">0</h3><p>Today's Collections</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-route"></i></div><div class="stat-info"><h3 id="route-progress">0%</h3><p>Route Progress</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><h3 id="est-time">0 min</h3><p>Est. Time Remaining</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-leaf"></i></div><div class="stat-info"><h3 id="carbon-saved">0 kg</h3><p>CO₂ Saved</p></div></div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3><i class="fas fa-qrcode"></i> QR Scanner</h3>
+            <p>Scan bin QR code to record collection</p>
+            <button class="btn-primary" onclick="window.location.href='/pages/scanner.html'">
+                <i class="fas fa-camera"></i> Open QR Scanner
+            </button>
+        </div>
+        <div class="dashboard-card">
+            <h3><i class="fas fa-map-marked-alt"></i> Live Tracking</h3>
+            <p>View your current location and assigned bins on a map.</p>
+            <button class="btn-primary" onclick="window.open('/pages/tracking.html', '_blank')">
+                <i class="fas fa-external-link-alt"></i> Open Tracking Map
+            </button>
+        </div>
+
+        <div class="dashboard-card">
+            <h3><i class="fas fa-trash-alt"></i> Assigned Bins</h3>
+            <div id="bin-list"><div class="loading-spinner"></div></div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3><i class="fas fa-history"></i> Recent Collections</h3>
+            <div id="history-list"><div class="loading-spinner"></div></div>
+        </div>
+    </div>
+  
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentUser = null;
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            try {
+                const response = await fetch(`${API_URL}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    document.getElementById('collector-name').textContent = currentUser.name;
+                    if (currentUser.role !== 'COLLECTOR') {
+                        window.location.href = '/dashboard/household.html';
+                        return false;
+                    }
+                    return true;
+                } else {
+                    throw new Error('Unauthorized');
+                }
+            } catch (error) {
+                console.error('Auth failed:', error);
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('token');
+                const binsRes = await fetch(`${API_URL}/collector/bins`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const bins = await binsRes.json();
+                displayBins(bins);
+                const historyRes = await fetch(`${API_URL}/collector/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const history = await historyRes.json();
+                displayHistory(history);
+                document.getElementById('today-collections').textContent = bins.filter(b => b.collectedToday).length || 0;
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                useDemoData();
+            }
+        }
+
+        function displayBins(bins) {
+            const container = document.getElementById('bin-list');
+            if (!bins || bins.length === 0) {
+                container.innerHTML = '<p>No bins assigned</p>';
+                return;
+            }
+            container.innerHTML = bins.map(bin => `
+                <div class="bin-item">
+                    <div>
+                        <strong>${bin.type || bin.binType || 'General'} Bin</strong>
+                        <p style="font-size: 0.75rem; color: #64748b;">${bin.locality || bin.location || 'N/A'}</p>
+                    </div>
+                    <div style="font-weight: 600; color: ${bin.fillLevel > 80 ? '#ef4444' : bin.fillLevel > 50 ? '#f59e0b' : '#22c55e'}">
+                        ${bin.fillLevel || 0}% full
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayHistory(history) {
+            const container = document.getElementById('history-list');
+            if (!history || history.length === 0) {
+                container.innerHTML = '<p>No collection history yet</p>';
+                return;
+            }
+            container.innerHTML = history.slice(0, 5).map(record => `
+                <div class="collection-item">
+                    <div>
+                        <strong>${record.binType || 'Collection'}</strong>
+                        <br>
+                        <small>${new Date(record.collectionTime).toLocaleString()}</small>
+                    </div>
+                    <div style="color: #22c55e; font-weight: 600;">+${record.pointsAwarded || 10} pts</div>
+                </div>
+            `).join('');
+        }
+
+        function useDemoData() {
+            document.getElementById('today-collections').textContent = '12';
+            document.getElementById('route-progress').textContent = '48%';
+            document.getElementById('est-time').textContent = '35 min';
+            document.getElementById('carbon-saved').textContent = '125 kg';
+            document.getElementById('bin-list').innerHTML = `
+                <div class="bin-item"><div><strong>Organic Bin</strong><p>Green Society</p></div><div style="color: #f59e0b;">65% full</div></div>
+                <div class="bin-item"><div><strong>Recyclable Bin</strong><p>Eco Colony</p></div><div style="color: #ef4444;">85% full</div></div>
+            `;
+            document.getElementById('history-list').innerHTML = `
+                <div class="collection-item"><div><strong>Organic Collection</strong><br><small>Today, 10:30 AM</small></div><div style="color: #22c55e;">+15 pts</div></div>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        async function init() {
+            const isAuth = await checkAuth();
+            if (isAuth) {
+                await loadDashboardData();
+                setInterval(loadDashboardData, 30000);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

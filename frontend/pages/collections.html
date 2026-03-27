@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collection History - Smart Waste Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .header p {
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #22c55e;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #22c55e;
+        }
+
+        .stat-card p {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+            font-family: inherit;
+        }
+
+        .collections-table {
+            background: white;
+            border-radius: 1rem;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .quality-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .quality-excellent {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .quality-good {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .quality-poor {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid #e2e8f0;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #22c55e;
+            color: white;
+            border-color: #22c55e;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            th, td { padding: 0.75rem; font-size: 0.875rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard/household.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="header">
+            <h1><i class="fas fa-history"></i> Collection History</h1>
+            <p>View all your waste collection records</p>
+        </div>
+
+        <div class="stats-summary" id="stats-summary">
+            <div class="stat-card">
+                <h3 id="total-collections">0</h3>
+                <p>Total Collections</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="total-points">0</h3>
+                <p>Total Points Earned</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="total-weight">0</h3>
+                <p>Total Waste (kg)</p>
+            </div>
+        </div>
+
+        <div class="filters">
+           <label for="quality-filter">Filter by Quality</label>
+                <select id="quality-filter" class="filter-select">
+                    <option value="all">All Qualities</option>
+                    <option value="EXCELLENT">Excellent</option>
+                    <option value="GOOD">Good</option>
+                    <option value="POOR">Poor</option>
+                    <option value="FAILED">Failed</option>
+                </select>
+
+                <label for="sort-filter">Sort By</label>
+                <select id="sort-filter" class="filter-select">
+                    <option value="desc">Newest First</option>
+                    <option value="asc">Oldest First</option>
+                </select>
+            <input type="month" id="month-filter" class="filter-select" placeholder="Filter by month">
+        </div>
+
+        <div class="collections-table">
+            <table id="collections-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Bin Type</th>
+                        <th>Location</th>
+                        <th>Weight (kg)</th>
+                        <th>Quality</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody id="collections-tbody">
+                  <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="loading-spinner"></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentPage = 1;
+        let totalPages = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCollections();
+            
+            document.getElementById('quality-filter').addEventListener('change', () => {
+                currentPage = 1;
+                loadCollections();
+            });
+            
+            document.getElementById('sort-filter').addEventListener('change', () => {
+                currentPage = 1;
+                loadCollections();
+            });
+            
+            document.getElementById('month-filter').addEventListener('change', () => {
+                currentPage = 1;
+                loadCollections();
+            });
+        });
+
+        async function loadCollections() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const quality = document.getElementById('quality-filter').value;
+            const sort = document.getElementById('sort-filter').value;
+            const month = document.getElementById('month-filter').value;
+
+            try {
+                const response = await fetch(`${API_URL}/waste/collections?page=${currentPage}&quality=${quality}&sort=${sort}&month=${month}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                displayCollections(data.collections || data);
+                updateStats(data.stats || {});
+                updatePagination(data.pagination || { totalPages: 1, currentPage: 1 });
+                
+            } catch (error) {
+                console.error('Failed to load collections:', error);
+                document.getElementById('collections-tbody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Failed to load collections</td></tr>';
+                useDemoData();
+            }
+        }
+
+        function displayCollections(collections) {
+            const tbody = document.getElementById('collections-tbody');
+            
+            if (!collections || collections.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No collections found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = collections.map(c => `
+                <tr>
+                    <td>${new Date(c.collectionTime).toLocaleDateString()}</td>
+                    <td>${c.binType || c.bin?.binType || 'General'}</td>
+                    <td>${c.location || c.bin?.locality || 'N/A'}</td>
+                    <td>${c.wasteWeight || 0} kg</td>
+                    <td><span class="quality-badge quality-${(c.segregationQuality || 'POOR').toLowerCase()}">${c.segregationQuality || 'POOR'}</span></td>
+                    <td style="color: #22c55e; font-weight: 600;">+${c.pointsAwarded || 0}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats(stats) {
+            document.getElementById('total-collections').textContent = stats.totalCollections || 0;
+            document.getElementById('total-points').textContent = stats.totalPoints || 0;
+            document.getElementById('total-weight').textContent = `${stats.totalWeight || 0} kg`;
+        }
+
+        function updatePagination(pagination) {
+            totalPages = pagination.totalPages || 1;
+            currentPage = pagination.currentPage || 1;
+            
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let buttons = '';
+            for (let i = 1; i <= totalPages; i++) {
+                buttons += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            container.innerHTML = buttons;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            loadCollections();
+        }
+
+        function useDemoData() {
+            const demoCollections = [
+                { collectionTime: '2024-03-25T10:30:00', binType: 'Organic', location: 'Green Society', wasteWeight: 5.2, segregationQuality: 'EXCELLENT', pointsAwarded: 15 },
+                { collectionTime: '2024-03-24T09:15:00', binType: 'Recyclable', location: 'Green Society', wasteWeight: 3.5, segregationQuality: 'GOOD', pointsAwarded: 10 },
+                { collectionTime: '2024-03-23T14:45:00', binType: 'Organic', location: 'Green Society', wasteWeight: 4.8, segregationQuality: 'EXCELLENT', pointsAwarded: 15 }
+            ];
+            displayCollections(demoCollections);
+            document.getElementById('total-collections').textContent = '3';
+            document.getElementById('total-points').textContent = '40';
+            document.getElementById('total-weight').textContent = '13.5 kg';
+        }
+    </script>
+</body>
+</html>

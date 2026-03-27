@@ -1,0 +1,613 @@
+/* =============================================
+   Responsive Design - Universal Browser Support
+   No Firefox-specific issues, no empty rulesets
+   ============================================= */
+
+/* Extra Small Devices (Phones, < 576px) */
+@media (max-width: 575.98px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .stats-grid {
+        gap: 0.75rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .stat-icon i {
+        font-size: 1.25rem;
+    }
+    
+    .stat-info h3 {
+        font-size: 1.25rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+    
+    .btn-large {
+        padding: 0.5rem 1rem;
+    }
+    
+    /* Fixed: Use explicit height instead of min-height: auto */
+    .hero {
+        min-height: 60vh;
+    }
+}
+
+/* Small Devices (Tablets, 576px - 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Fixed: Use explicit height */
+    .hero {
+        min-height: 70vh;
+    }
+}
+
+/* Medium Devices (Tablets, 768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Large Devices (Desktops, 992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+/* Extra Large Devices (Large Desktops, 1200px+) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+/* Landscape Mode */
+@media (orientation: landscape) and (max-height: 500px) {
+    .hero {
+        padding: 2rem 0;
+        min-height: 300px;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .navbar,
+    .sidebar,
+    .footer,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* =============================================
+   Universal Flexbox Fixes
+   ============================================= */
+
+/* Ensure flexbox works consistently across all browsers */
+.dashboard-grid,
+.features-grid,
+.stats-grid {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+/* =============================================
+   Safari & iOS Specific Fixes (WebKit only)
+   ============================================= */
+
+/* This is safe - only targets WebKit browsers */
+@media not all and (min-resolution: 0.001dpcm) {
+    @supports (-webkit-appearance: none) {
+        /* Fix for backdrop-filter in Safari */
+        .ai-predictions {
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        
+        .prediction-card {
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Fix for gradient text in Safari */
+        .gradient-text {
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        
+        /* Fix for sticky positioning in Safari */
+        .top-bar {
+            position: -webkit-sticky;
+            position: sticky;
+        }
+        
+        /* Fix for Safari flexbox issues */
+        .dashboard-grid {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-wrap: wrap;
+            flex-wrap: wrap;
+        }
+    }
+}
+
+/* =============================================
+   Backdrop Filter Fallback (for all browsers)
+   ============================================= */
+
+/* Default fallback (no backdrop-filter) */
+.ai-predictions {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Progressive enhancement for browsers that support backdrop-filter */
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    .ai-predictions {
+        background: rgba(102, 126, 234, 0.8);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
+    
+    .prediction-card {
+        background: rgba(255, 255, 255, 0.15);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
+}
+
+/* =============================================
+   Gradient Text Fallback
+   ============================================= */
+
+/* Default fallback */
+.gradient-text {
+    color: #16a34a;
+}
+
+/* Progressive enhancement */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+    .gradient-text {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+}
+
+/* =============================================
+   Sticky Position Fallback
+   ============================================= */
+
+.top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+/* Fallback for older browsers */
+@supports not (position: sticky) {
+    .top-bar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+    }
+    
+    .main-content {
+        padding-top: 70px;
+    }
+}
+
+/* =============================================
+   CSS Grid Fallback for Older Browsers
+   ============================================= */
+
+/* Modern browsers with grid support */
+@supports (display: grid) {
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+/* Fallback for browsers without grid support */
+@supports not (display: grid) {
+    .dashboard-grid {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -0.75rem;
+    }
+    
+    .dashboard-card {
+        flex: 1 1 calc(50% - 1.5rem);
+        margin: 0.75rem;
+        min-width: 280px;
+    }
+    
+    .features-grid {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -1rem;
+    }
+    
+    .feature-card {
+        flex: 1 1 calc(33.333% - 2rem);
+        margin: 1rem;
+        min-width: 250px;
+    }
+    
+    .stats-grid {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -0.75rem;
+    }
+    
+    .stat-card {
+        flex: 1 1 calc(25% - 1.5rem);
+        margin: 0.75rem;
+        min-width: 200px;
+    }
+}
+
+/* =============================================
+   Scrollbar Styling - Cross Browser Compatible
+   ============================================= */
+
+/* WebKit browsers (Chrome, Safari, Edge, Opera) */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+}
+
+/* Firefox scrollbar - only apply if feature is supported */
+@supports (scrollbar-width: thin) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #c1c1c1 #f1f1f1;
+    }
+}
+
+/* =============================================
+   High Contrast Mode
+   ============================================= */
+
+@media (prefers-contrast: high) {
+    .btn-primary {
+        background: #15803d;
+        border: 2px solid white;
+    }
+    
+    .card,
+    .stat-card,
+    .dashboard-card {
+        border: 1px solid #e2e8f0;
+    }
+    
+    .text-success {
+        color: #0a5c2e;
+    }
+}
+
+/* =============================================
+   Reduced Motion
+   ============================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* =============================================
+   Dark Mode Support
+   ============================================= */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #111827;
+    }
+    
+    .card,
+    .stat-card,
+    .dashboard-card,
+    .modal-content {
+        background: #1f2937;
+    }
+    
+    .card-header,
+    .card-footer {
+        background: #374151;
+        border-color: #4b5563;
+    }
+    
+    .form-input,
+    .form-textarea,
+    .form-select {
+        background: #374151;
+        border-color: #4b5563;
+        color: #f3f4f6;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+        border-color: #22c55e;
+    }
+    
+    .table thead {
+        background: #374151;
+    }
+    
+    .table th,
+    .table td {
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+    
+    .table tbody tr:hover {
+        background: #374151;
+    }
+    
+    .text-gray-600 {
+        color: #9ca3af;
+    }
+    
+    /* WebKit scrollbar dark mode */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    }
+    
+    /* Firefox scrollbar dark mode */
+    @supports (scrollbar-width: thin) {
+        * {
+            scrollbar-color: #4b5563 #1f2937;
+        }
+    }
+}
+
+/* =============================================
+   Touch Device Optimizations
+   ============================================= */
+
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn,
+    .nav-item,
+    .stat-card,
+    .dashboard-card {
+        cursor: default;
+    }
+    
+    /* Increase tap target size (minimum 44px for accessibility) */
+    .btn,
+    .nav-item,
+    .modal-close {
+        min-height: 44px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .btn:hover,
+    .card:hover,
+    .stat-card:hover,
+    .dashboard-card:hover {
+        transform: none;
+    }
+    
+    /* Disable hover effects */
+    .hover-lift:hover,
+    .hover-scale:hover {
+        transform: none;
+    }
+}
+
+/* =============================================
+   Ultra Wide Screens
+   ============================================= */
+
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1440px;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+    }
+}
+
+/* =============================================
+   Small Height Devices
+   ============================================= */
+
+@media (max-height: 600px) {
+    .hero {
+        padding: 2rem 0;
+    }
+    
+    .dashboard-header {
+        padding: 1rem;
+    }
+    
+    .sidebar {
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+}
+
+/* =============================================
+   RTL Language Support
+   ============================================= */
+
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .nav-item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .stat-card {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .btn i {
+    margin-left: 0.5rem;
+    margin-right: 0;
+}
+
+/* =============================================
+   Loading Animation (Universal)
+   ============================================= */
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #22c55e;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    border-style: solid;
+    border-width: 3px;
+}
+
+/* =============================================
+   Accessibility - Focus States
+   ============================================= */
+
+:focus {
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+}

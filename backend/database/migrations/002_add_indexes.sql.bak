@@ -1,0 +1,24 @@
+-- =============================================
+-- Additional Indexes for Performance Optimization
+-- =============================================
+
+-- Composite indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_collections_household_time 
+ON collections(household_id, collection_time);
+
+CREATE INDEX IF NOT EXISTS idx_collections_collector_time 
+ON collections(collector_id, collection_time);
+
+CREATE INDEX IF NOT EXISTS idx_sensor_data_bin_timestamp 
+ON sensor_data(bin_id, timestamp);
+
+-- Full-text search indexes
+CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+CREATE INDEX IF NOT EXISTS idx_reports_description ON reports(description);
+CREATE INDEX IF NOT EXISTS idx_qr_bins_locality ON qr_bins(locality);
+
+-- Spatial queries (for location-based searches)
+-- Note: For better spatial queries, consider PostGIS with PostgreSQL
+CREATE INDEX IF NOT EXISTS idx_users_location ON users(latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_qr_bins_location ON qr_bins(latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_reports_location ON reports(latitude, longitude);

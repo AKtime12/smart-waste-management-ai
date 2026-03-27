@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("HOUSEHOLD")
+  points    Int      @default(0)
+  tier      String   @default("BASIC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collections            Collection[] // household collections
+  reports                Report[]
+  pointsHistory          PointTransaction[]
+  collectedCollections   Collection[]            @relation("CollectorCollections") // collections done by collector
+  redemptions            RedeemHistory[]
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+}
+
+model QRBin {
+  id          String   @id @default(cuid())
+  qrCode      String   @unique
+  binType     String
+  latitude    Float
+  longitude   Float
+  ward        String
+  locality    String
+  capacity    Float    @default(100)
+  currentFill Float    @default(0)
+  isFull      Boolean  @default(false)
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  collections    Collection[]
+  sensorReadings SensorData[]
+}
+
+model Collection {
+  id                 String    @id @default(cuid())
+  binId              String
+  bin                QRBin     @relation(fields: [binId], references: [id])
+  householdId        String
+  household          User      @relation(fields: [householdId], references: [id])
+  collectorId        String?
+  collector          User?     @relation("CollectorCollections", fields: [collectorId], references: [id])
+  collectionTime     DateTime  @default(now())
+  wasteWeight        Float?
+  aiVerified         Boolean   @default(false)
+  segregationQuality String?
+  imageUrl           String?
+  pointsAwarded      Int       @default(0)
+  notes              String?
+  // Factory verification fields
+  factoryVerified    Boolean   @default(false)
+  factoryVerifiedAt  DateTime?
+  factoryQuality     String?
+  factoryImageUrl    String?
+}
+
+model PointTransaction {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  points       Int
+  reason       String
+  type         String   @default("COLLECTION")
+  collectionId String?
+  createdAt    DateTime @default(now())
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  imageUrl    String?
+  latitude    Float
+  longitude   Float
+  description String
+  status      String    @default("PENDING")
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  points      Int
+  category    String
+  stock       Int      @default(100)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  redemptions RedeemHistory[]
+}
+
+model RedeemHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  rewardId   String
+  reward     Reward   @relation(fields: [rewardId], references: [id])
+  rewardName String
+  points     Int
+  status     String   @default("COMPLETED")
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  data      String?
+  createdAt DateTime @default(now())
+}
+
+model NotificationPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id])
+  email              Boolean  @default(true)
+  push               Boolean  @default(true)
+  sms                Boolean  @default(false)
+  binFull            Boolean  @default(true)
+  collectionReminder Boolean  @default(true)
+  rewardUpdates      Boolean  @default(true)
+  reportUpdates      Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SensorData {
+  id           String   @id @default(cuid())
+  binId        String
+  bin          QRBin    @relation(fields: [binId], references: [id])
+  fillLevel    Float
+  temperature  Float?
+  humidity     Float?
+  isFull       Boolean  @default(false)
+  batteryLevel Float?
+  timestamp    DateTime @default(now())
+}
+
+model Prediction {
+  id              String   @id @default(cuid())
+  area            String
+  date            DateTime
+  predictedVolume Float
+  confidence      Float
+  factors         String?
+  recommendations String?
+  createdAt       DateTime @default(now())
+
+  @@unique([area, date])
+}
+
+model Ward {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  totalPoints       Int      @default(0)
+  participationRate Float    @default(0)
+  rank              Int?
+  level             String   @default("DEVELOPING")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

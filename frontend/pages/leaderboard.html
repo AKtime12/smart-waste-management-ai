@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Smart Waste Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fb 0%, #e8f0fe 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #22c55e;
+            text-decoration: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header p {
+            color: #64748b;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #22c55e;
+            border-bottom: 2px solid #22c55e;
+        }
+
+        .leaderboard-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px;
+            background: #f8fafc;
+            padding: 1rem;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .leaderboard-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        .leaderboard-item:hover {
+            background: #f8fafc;
+        }
+
+        .rank {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rank-1 { color: #fbbf24; }
+        .rank-2 { color: #94a3b8; }
+        .rank-3 { color: #cd7f32; }
+
+        .name {
+            font-weight: 500;
+        }
+
+        .points {
+            font-weight: 600;
+            color: #22c55e;
+        }
+
+        .your-rank-card {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .your-rank-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid #e2e8f0;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            .leaderboard-header, .leaderboard-item {
+                grid-template-columns: 60px 1fr 80px;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard/household.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="header">
+            <h1><i class="fas fa-trophy"></i> Leaderboard</h1>
+            <p>Top performers in your community</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-type="households">Households</button>
+            <button class="tab" data-type="collectors">Collectors</button>
+            <button class="tab" data-type="wards">Wards</button>
+        </div>
+
+        <div id="leaderboard-content" class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div>Rank</div>
+                <div>Name</div>
+                <div>Points</div>
+            </div>
+            <div id="leaderboard-list">
+                <div class="loading-spinner" style="margin: 2rem auto; display: block;"></div>
+            </div>
+        </div>
+
+        <div id="your-rank" class="your-rank-card" style="display: none;">
+            <p>Your Rank</p>
+            <div class="your-rank-number" id="your-rank-number">#0</div>
+            <p id="your-rank-points">You have 0 points</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentType = 'households';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard();
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentType = tab.dataset.type;
+                    loadLeaderboard();
+                });
+            });
+        });
+
+        async function loadLeaderboard() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/rewards/points/leaderboard?type=${currentType}&limit=20`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                displayLeaderboard(data.leaderboard || data);
+                loadYourRank();
+                
+            } catch (error) {
+                console.error('Failed to load leaderboard:', error);
+                useDemoData();
+            }
+        }
+
+        function displayLeaderboard(leaderboard) {
+            const container = document.getElementById('leaderboard-list');
+            
+            if (!leaderboard || leaderboard.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 2rem;">No data available</div>';
+                return;
+            }
+            
+            container.innerHTML = leaderboard.map((item, index) => `
+                <div class="leaderboard-item">
+                    <div class="rank ${index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : ''}">
+                        ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </div>
+                    <div class="name">${item.name}</div>
+                    <div class="points">${item.points.toLocaleString()} pts</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadYourRank() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/rewards/points/rank`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                const yourRank = data.rank || 15;
+                const yourPoints = data.points || 1250;
+                
+                document.getElementById('your-rank').style.display = 'block';
+                document.getElementById('your-rank-number').textContent = `#${yourRank}`;
+                document.getElementById('your-rank-points').textContent = `You have ${yourPoints.toLocaleString()} points`;
+                
+            } catch (error) {
+                console.error('Failed to load your rank:', error);
+                document.getElementById('your-rank').style.display = 'block';
+                document.getElementById('your-rank-number').textContent = '#15';
+                document.getElementById('your-rank-points').textContent = 'You have 1,250 points';
+            }
+        }
+
+        function useDemoData() {
+            const demoData = [
+                { name: 'Green Family', points: 2450 },
+                { name: 'Eco Warriors', points: 1980 },
+                { name: 'Sustainable Living', points: 1670 },
+                { name: 'Waste Busters', points: 1430 },
+                { name: 'Green Initiative', points: 1210 }
+            ];
+            displayLeaderboard(demoData);
+            document.getElementById('your-rank').style.display = 'block';
+            document.getElementById('your-rank-number').textContent = '#15';
+            document.getElementById('your-rank-points').textContent = 'You have 1,250 points';
+        }
+    </script>
+</body>
+</html>

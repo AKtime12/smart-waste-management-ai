@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Household Dashboard</title>
+
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/animations.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- In household dashboard -->
+<button onclick="window.location.href='/pages/collections.html'">View All Collections</button>
+<button onclick="window.location.href='/pages/leaderboard.html'">View Leaderboard</button>
+<button onclick="window.location.href='/pages/rewards.html'">Rewards Marketplace</button>
+<button onclick="window.location.href='/pages/report.html'">Report Issue</button>
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<header class="dashboard-header">
+    <div class="container">
+        <h1>Welcome, <span id="user-name">User</span></h1>
+        <p><i class="fas fa-star"></i> <span id="total-points">0</span> points</p>
+    </div>
+</header>
+
+<div class="dashboard-container">
+<div class="dashboard-grid">
+
+<!-- QR -->
+<div class="dashboard-card">
+    <h3>QR Code</h3>
+    <div id="qr-container">
+        <button onclick="showQRCode()" class="btn btn-primary">Show QR</button>
+    </div>
+</div>
+
+<!-- Collections -->
+<div class="dashboard-card">
+    <h3>Recent Collections</h3>
+    <div id="collections-list"></div>
+</div>
+
+<!-- Tips -->
+<div class="dashboard-card">
+    <h3>AI Tips</h3>
+    <div id="tips-list"></div>
+</div>
+
+<!-- Ward -->
+<div class="dashboard-card">
+    <h3>Ward Progress</h3>
+    <div class="progress-bar">
+        <div id="progress-bar-fill" class="progress-fill"></div>
+    </div>
+    <p id="progress-text"></p>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<!-- Modal -->
+<div id="qr-modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <h2>Your QR Code</h2>
+        <div id="qr-code-display"></div>
+        <button onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+
+<script>
+let user = null;
+
+// INIT
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadUser();
+    await loadCollections();
+    await loadTips();
+    await loadWard();
+});
+
+// USER
+async function loadUser() {
+    try {
+        user = await api.getProfile();
+
+        if (!user) throw new Error();
+
+        document.getElementById('user-name').textContent = user.name || 'User';
+        document.getElementById('total-points').textContent =
+            (user.points || 0).toLocaleString();
+
+    } catch {
+        alert("Login again");
+        window.location.href = "/login.html";
+    }
+}
+
+// COLLECTIONS (SAFE)
+async function loadCollections() {
+    try {
+        const data = await api.getCollections();
+        const list = document.getElementById('collections-list');
+        list.innerHTML = '';
+
+        if (!data.length) {
+            list.textContent = 'No collections yet';
+            return;
+        }
+
+        data.slice(0,5).forEach(c => {
+            const div = document.createElement('div');
+
+            const title = document.createElement('strong');
+            title.textContent =
+                c.segregationQuality === 'EXCELLENT'
+                ? 'Proper Segregation'
+                : 'Needs Improvement';
+
+            const time = document.createElement('small');
+            time.textContent = new Date(c.collectionTime).toLocaleString();
+
+            const points = document.createElement('div');
+            points.textContent =
+                `${c.pointsAwarded > 0 ? '+' : ''}${c.pointsAwarded} pts`;
+
+            div.append(title, time, points);
+            list.appendChild(div);
+        });
+
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// TIPS (SAFE)
+async function loadTips() {
+    try {
+        const tips = await api.getTips();
+        const list = document.getElementById('tips-list');
+        list.innerHTML = '';
+
+        tips.forEach(t => {
+            const div = document.createElement('div');
+            div.textContent = t.message;
+            list.appendChild(div);
+        });
+
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// WARD
+async function loadWard() {
+    try {
+        const w = await api.getWardStats();
+
+        const percent = (w.points / w.goal) * 100;
+
+        document.getElementById('progress-bar-fill')
+            .style.width = percent + "%";
+
+        document.getElementById('progress-text')
+            .textContent = `${w.points}/${w.goal}`;
+
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// QR (SECURE)
+function showQRCode() {
+    const modal = document.getElementById('qr-modal');
+    const box = document.getElementById('qr-code-display');
+
+    const qrData = user.qrCode || `UID:${user.id}`;
+
+    box.innerHTML = '';
+
+    new QRCode(box, {
+        text: qrData,
+        width: 200,
+        height: 200
+    });
+
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('qr-modal').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

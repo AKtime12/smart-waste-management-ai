@@ -1,0 +1,8 @@
+{
+  "name": "Waste Classification Model",
+  "version": "1.0.0",
+  "classes": ["ORGANIC", "RECYCLABLE", "NON_RECYCLABLE", "HAZARDOUS"],
+  "input_shape": [224, 224, 3],
+  "accuracy": 0.89,
+  "created_date": "2024-03-25"
+}

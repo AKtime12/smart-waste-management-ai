@@ -1,0 +1,13 @@
+User takes photo of waste
+        ↓
+[Frontend] Camera captures image
+        ↓
+[AI Model] waste-classifier/model.json + weights.bin
+        ↓
+Classifies: "ORGANIC" (95% confidence)
+        ↓
+[Backend] Records collection with quality rating
+        ↓
+[Prediction] prediction-model/model.pkl forecasts future waste
+        ↓
+[Admin Dashboard] Shows predictions for next 7 days

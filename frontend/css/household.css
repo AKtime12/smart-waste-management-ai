@@ -1,0 +1,355 @@
+/* =============================================
+   Household Dashboard Specific Styles
+   ============================================= */
+
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    padding: 1.5rem 2rem;
+}
+
+.dashboard-header h1 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.points-display {
+    background: rgba(255, 255, 255, 0.2);
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    margin-top: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 1200px;
+    margin: -1.5rem auto 0;
+    padding: 0 2rem 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.dashboard-card.full-width {
+    grid-column: span 2;
+}
+
+.dashboard-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-700);
+}
+
+/* QR Code Styles */
+.qr-container {
+    text-align: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+}
+
+.qr-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.qr-code-display {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--radius-lg);
+}
+
+.note {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* Points Breakdown */
+.points-breakdown {
+    margin-bottom: 1rem;
+}
+
+.points-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.points-stat span {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.points-stat strong {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-600);
+}
+
+.points-progress {
+    margin-top: 1rem;
+}
+
+.progress-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+}
+
+.progress-bar {
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    height: 0.5rem;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+    height: 100%;
+    transition: width var(--transition-base) ease;
+}
+
+.progress-text {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+}
+
+/* Collections List */
+.collections-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.collection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+    transition: background var(--transition-fast);
+}
+
+.collection-item:hover {
+    background: var(--gray-50);
+}
+
+.collection-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.collection-info i {
+    font-size: 1rem;
+}
+
+.text-success {
+    color: var(--success);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+.collection-points {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.collection-points.positive {
+    color: var(--success);
+}
+
+.collection-points.negative {
+    color: var(--danger);
+}
+
+/* Tips List */
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast);
+}
+
+.tip-item:hover {
+    transform: translateX(5px);
+}
+
+.tip-item i {
+    font-size: 1.25rem;
+    color: var(--primary-600);
+}
+
+.tip-item p {
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    margin-bottom: 0;
+}
+
+/* Ward Stats */
+.ward-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ward-stat {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+}
+
+.ward-stat span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+}
+
+.ward-stat strong {
+    font-size: 1rem;
+    color: var(--primary-600);
+}
+
+.ward-progress {
+    margin-top: 1rem;
+}
+
+/* Button Link */
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--primary-600);
+    cursor: pointer;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color var(--transition-fast);
+}
+
+.btn-link:hover {
+    color: var(--primary-700);
+    text-decoration: underline;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-400);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--gray-300);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0 1rem 1rem;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-card.full-width {
+        grid-column: span 1;
+    }
+    
+    .ward-stats {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .collection-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        padding: 1rem;
+    }
+    
+    .dashboard-card {
+        padding: 1rem;
+    }
+    
+    .points-stat {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .ward-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .ward-stat span {
+        margin-bottom: 0;
+    }
+}

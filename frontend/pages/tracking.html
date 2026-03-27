@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-time Tracking - Smart Waste Management</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="../css/style.css">
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<style>
+.container-xl { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+
+#map { height: 500px; border-radius: 1rem; }
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.tracking-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-box {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.collector-list { max-height: 300px; overflow-y: auto; }
+
+.collector-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.online-dot {
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.urgent {
+    background: #fef2f2;
+    border-left: 3px solid #ef4444;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container-xl">
+    <h1>
+        <i class="fas fa-map-marked-alt" aria-hidden="true"></i> 
+        Real-time Waste Tracking
+    </h1>
+    <p>Monitor waste collection in real-time</p>
+
+    <!-- Stats -->
+    <div class="tracking-stats">
+        <div class="stat-box">
+            <h3 id="active-collectors">0</h3>
+            <p>Active Collectors</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="full-bins">0</h3>
+            <p>Full Bins</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="collections-today">0</h3>
+            <p>Collections Today</p>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map" role="region" aria-label="Live tracking map"></div>
+
+    <!-- Lists -->
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-truck"></i> Active Collectors</h3>
+            </div>
+            <div class="card-body">
+                <div id="collectors-list" class="collector-list"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-trash"></i> Bin Status</h3>
+            </div>
+            <div class="card-body">
+                <div id="bins-list" class="collector-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+
+<script>
+let map, socket;
+let markersLayer;
+
+document.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    initWebSocket();
+    loadData();
+    setInterval(loadData, 30000);
+});
+
+function initMap() {
+    map = L.map('map').setView([28.6139, 77.2090], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    markersLayer = L.layerGroup().addTo(map);
+}
+
+function initWebSocket() {
+    socket = io('http://localhost:5000');
+
+    socket.on('bin:update', loadData);
+    socket.on('collector:location-changed', loadData);
+}
+
+async function loadData() {
+    try {
+        const stats = await api.getLiveStats();
+        document.getElementById('active-collectors').textContent = stats.activeCollectors || 0;
+        document.getElementById('full-bins').textContent = stats.fullBins || 0;
+        document.getElementById('collections-today').textContent = stats.collectionsToday || 0;
+
+        const bins = await api.getBins();
+        const collectors = await api.getActiveCollectors();
+
+        updateCollectorsList(collectors);
+        updateBinsList(bins);
+        updateMap(bins, collectors);
+
+    } catch (e) {
+        console.error('Failed:', e);
+    }
+}
+
+// ✅ SAFE DOM (no innerHTML injection)
+function createCollectorItem(c) {
+    const div = document.createElement('div');
+    div.className = 'collector-item';
+
+    const left = document.createElement('div');
+    left.innerHTML = `<span class="online-dot"></span> <strong></strong><br><small></small>`;
+    left.querySelector('strong').textContent = c.name;
+    left.querySelector('small').textContent = c.area || 'Moving';
+
+    const right = document.createElement('div');
+    right.textContent = `🚛 ${c.collectionsToday || 0} today`;
+
+    div.appendChild(left);
+    div.appendChild(right);
+
+    return div;
+}
+
+function updateCollectorsList(collectors) {
+    const container = document.getElementById('collectors-list');
+    container.innerHTML = '';
+    (collectors || []).forEach(c => container.appendChild(createCollectorItem(c)));
+}
+
+function updateBinsList(bins) {
+    const container = document.getElementById('bins-list');
+    container.innerHTML = '';
+
+    (bins || []).forEach(b => {
+        const div = document.createElement('div');
+        div.className = 'collector-item' + (b.fillLevel > 80 ? ' urgent' : '');
+
+        div.innerHTML = `
+            <div>
+                <strong>${b.type} Bin</strong><br>
+                <small>${b.locality}</small>
+            </div>
+            <div>${b.fillLevel}%</div>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+// ✅ Efficient map update
+function updateMap(bins, collectors) {
+    markersLayer.clearLayers();
+
+    bins.forEach(b => {
+        if (b.latitude && b.longitude) {
+            L.marker([b.latitude, b.longitude])
+                .addTo(markersLayer)
+                .bindPopup(`${b.type} Bin - ${b.fillLevel}%`);
+        }
+    });
+
+    collectors.forEach(c => {
+        if (c.latitude && c.longitude) {
+            L.marker([c.latitude, c.longitude], {
+                icon: L.divIcon({
+                    html: '<i class="fas fa-truck" style="color:#22c55e;"></i>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(markersLayer)
+              .bindPopup(c.name);
+        }
+    });
+}
+</script>
+
+</body>
+</html>

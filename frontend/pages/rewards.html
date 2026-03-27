@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewards Marketplace - Smart Waste Management</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+.container-xl { max-width: 1200px; margin: auto; padding: 2rem 1rem; }
+
+.points-header {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.reward-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.reward-card:hover { transform: translateY(-5px); }
+
+.reward-icon { font-size: 2.5rem; }
+
+.reward-points {
+    background: #fef3c7;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    margin: 0.5rem 0;
+    display: inline-block;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.filter-btn.active {
+    background: #22c55e;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container-xl">
+
+    <!-- Points -->
+    <div class="points-header">
+        <i class="fas fa-star"></i>
+        <h2 id="user-points">0</h2>
+        <p>Points Available</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-category="all">All</button>
+        <button class="filter-btn" data-category="vouchers">Vouchers</button>
+        <button class="filter-btn" data-category="products">Products</button>
+        <button class="filter-btn" data-category="experiences">Experiences</button>
+    </div>
+
+    <!-- Grid -->
+    <div id="rewards-grid" class="rewards-grid"></div>
+
+</div>
+
+<!-- Modal -->
+<div id="redeem-modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <h3>Redeem Reward</h3>
+        <div id="modal-body"></div>
+        <button onclick="confirmRedeem()">Confirm</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script src="../js/api.js"></script>
+
+<script>
+let rewards = [
+    { id:1, name:"₹100 Amazon Voucher", points:500, category:"vouchers", icon:"🎁" },
+    { id:2, name:"Water Bottle", points:300, category:"products", icon:"🚰" },
+    { id:3, name:"Plant a Tree", points:200, category:"experiences", icon:"🌳" }
+];
+
+let userPoints = 800;
+let currentReward = null;
+
+// Load
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('user-points').textContent = userPoints;
+    loadRewards('all');
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadRewards(btn.dataset.category);
+        });
+    });
+});
+
+// Safe card creation
+function createCard(r) {
+    const card = document.createElement('div');
+    card.className = 'reward-card';
+
+    const icon = document.createElement('div');
+    icon.className = 'reward-icon';
+    icon.textContent = r.icon;
+
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+
+    const points = document.createElement('div');
+    points.className = 'reward-points';
+    points.textContent = `${r.points} pts`;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Redeem';
+
+    if (userPoints < r.points) {
+        btn.disabled = true;
+        btn.textContent = 'Not enough points';
+    }
+
+    btn.onclick = () => showModal(r);
+
+    card.append(icon, title, points, btn);
+    return card;
+}
+
+function loadRewards(category) {
+    const grid = document.getElementById('rewards-grid');
+    grid.innerHTML = '';
+
+    const filtered = category === 'all'
+        ? rewards
+        : rewards.filter(r => r.category === category);
+
+    filtered.forEach(r => grid.appendChild(createCard(r)));
+}
+
+function showModal(r) {
+    currentReward = r;
+
+    const body = document.getElementById('modal-body');
+    body.textContent = `${r.name} - ${r.points} points`;
+
+    document.getElementById('redeem-modal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('redeem-modal').classList.remove('active');
+}
+
+function confirmRedeem() {
+    if (userPoints < currentReward.points) {
+        alert('Not enough points');
+        return;
+    }
+
+    userPoints -= currentReward.points;
+    document.getElementById('user-points').textContent = userPoints;
+
+    alert('Redeemed successfully!');
+    closeModal();
+    loadRewards('all');
+}
+</script>
+
+</body>
+</html>

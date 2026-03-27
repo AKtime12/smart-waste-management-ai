@@ -1,0 +1,107 @@
+const tf = require('@tensorflow/tfjs-node');
+const fs = require('fs');
+const path = require('path');
+
+class AIService {
+    constructor() {
+        this.model = null;
+        this.labels = [];
+        this.loadModel();
+    }
+
+    async loadModel() {
+        try {
+            console.log('Loading AI model...');
+            const modelPath = path.join(__dirname, '../../ai-model/waste-classifier/model.json');
+            this.model = await tf.loadLayersModel(`file://${modelPath}`);
+            
+            // Load labels
+            const labelsPath = path.join(__dirname, '../../ai-model/waste-classifier/labels.json');
+            this.labels = JSON.parse(fs.readFileSync(labelsPath, 'utf8'));
+            
+            console.log('✅ AI Model loaded successfully');
+        } catch (error) {
+            console.error('Failed to load AI model:', error);
+            this.useFallbackModel();
+        }
+    }
+
+    async classifyWaste(imageBuffer) {
+        try {
+            // Decode image
+            const image = tf.node.decodeImage(imageBuffer, 3);
+            const resized = tf.image.resizeBilinear(image, [224, 224]);
+            const normalized = resized.div(255.0);
+            const batched = normalized.expandDims(0);
+            
+            // Predict
+            const predictions = await this.model.predict(batched);
+            const scores = await predictions.data();
+            
+            // Get top prediction
+            const maxIndex = scores.indexOf(Math.max(...scores));
+            const category = this.labels[maxIndex];
+            const confidence = scores[maxIndex];
+            
+            // Generate suggestions
+            const suggestions = this.getSuggestions(category);
+            
+            return {
+                success: true,
+                category: category,
+                confidence: Math.round(confidence * 100),
+                suggestions: suggestions,
+                timestamp: new Date().toISOString()
+            };
+            
+        } catch (error) {
+            console.error('Classification error:', error);
+            return this.fallbackClassification();
+        }
+    }
+
+    getSuggestions(category) {
+        const suggestions = {
+            'ORGANIC': [
+                'Start a compost bin at home',
+                'Use waste for gardening fertilizer',
+                'Perfect for biogas production'
+            ],
+            'RECYCLABLE': [
+                'Rinse containers before recycling',
+                'Separate paper, plastic, and glass',
+                'Flatten boxes to save space'
+            ],
+            'NON_RECYCLABLE': [
+                'Look for reusable alternatives',
+                'Check if item can be repaired',
+                'Reduce single-use items'
+            ],
+            'HAZARDOUS': [
+                'Handle with protective gloves',
+                'Take to special collection center',
+                'Never mix with regular waste'
+            ]
+        };
+        
+        return suggestions[category] || suggestions['NON_RECYCLABLE'];
+    }
+
+    fallbackClassification() {
+        // Simple rule-based fallback
+        return {
+            success: true,
+            category: 'ORGANIC',
+            confidence: 75,
+            suggestions: this.getSuggestions('ORGANIC'),
+            note: 'Using fallback classification'
+        };
+    }
+
+    useFallbackModel() {
+        console.log('Using fallback rule-based classification');
+        this.model = null;
+    }
+}
+
+module.exports = AIService;

@@ -1,0 +1,347 @@
+-- =============================================
+-- Smart Waste Management System
+-- Initial Database Schema
+-- =============================================
+
+-- Enable foreign key constraints
+PRAGMA foreign_keys = ON;
+
+-- =============================================
+-- 1. Users Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('ADMIN', 'COLLECTOR', 'HOUSEHOLD', 'OPEN_USER')),
+    phone TEXT,
+    address TEXT,
+    latitude REAL,
+    longitude REAL,
+    points INTEGER DEFAULT 0,
+    qr_code TEXT UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_points ON users(points);
+
+-- =============================================
+-- 2. QR Bins Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS qr_bins (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    qr_code TEXT UNIQUE NOT NULL,
+    bin_type TEXT NOT NULL CHECK (bin_type IN ('ORGANIC', 'RECYCLABLE', 'NON_RECYCLABLE', 'HAZARDOUS')),
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    ward TEXT NOT NULL,
+    locality TEXT NOT NULL,
+    capacity REAL DEFAULT 100,
+    current_fill REAL DEFAULT 0,
+    is_full BOOLEAN DEFAULT 0,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX idx_qr_bins_qr_code ON qr_bins(qr_code);
+CREATE INDEX idx_qr_bins_ward ON qr_bins(ward);
+CREATE INDEX idx_qr_bins_fill ON qr_bins(current_fill);
+
+-- =============================================
+-- 3. Collections Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS collections (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    bin_id TEXT NOT NULL,
+    household_id TEXT,
+    collector_id TEXT,
+    collection_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    waste_weight REAL,
+    ai_verified BOOLEAN DEFAULT 0,
+    segregation_quality TEXT CHECK (segregation_quality IN ('EXCELLENT', 'GOOD', 'POOR', 'FAILED')),
+    image_url TEXT,
+    points_awarded INTEGER DEFAULT 0,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bin_id) REFERENCES qr_bins(id) ON DELETE CASCADE,
+    FOREIGN KEY (household_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (collector_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Create indexes
+CREATE INDEX idx_collections_bin ON collections(bin_id);
+CREATE INDEX idx_collections_household ON collections(household_id);
+CREATE INDEX idx_collections_collector ON collections(collector_id);
+CREATE INDEX idx_collections_time ON collections(collection_time);
+
+-- =============================================
+-- 4. Point Transactions Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS point_transactions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    collection_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE SET NULL
+);
+
+-- Create indexes
+CREATE INDEX idx_point_transactions_user ON point_transactions(user_id);
+CREATE INDEX idx_point_transactions_created ON point_transactions(created_at);
+
+-- =============================================
+-- 5. Reports Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS reports (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT NOT NULL,
+    image_url TEXT,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED')),
+    resolved_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX idx_reports_user ON reports(user_id);
+CREATE INDEX idx_reports_status ON reports(status);
+CREATE INDEX idx_reports_created ON reports(created_at);
+
+-- =============================================
+-- 6. Rewards Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS rewards (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    name TEXT NOT NULL,
+    description TEXT,
+    points INTEGER NOT NULL,
+    category TEXT CHECK (category IN ('vouchers', 'products', 'experiences')),
+    stock INTEGER DEFAULT 100,
+    image_url TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX idx_rewards_points ON rewards(points);
+CREATE INDEX idx_rewards_category ON rewards(category);
+
+-- =============================================
+-- 7. Redeem History Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS redeem_history (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT NOT NULL,
+    reward_id TEXT NOT NULL,
+    reward_name TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    status TEXT DEFAULT 'COMPLETED' CHECK (status IN ('COMPLETED', 'PENDING', 'CANCELLED')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reward_id) REFERENCES rewards(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX idx_redeem_history_user ON redeem_history(user_id);
+CREATE INDEX idx_redeem_history_created ON redeem_history(created_at);
+
+-- =============================================
+-- 8. Notifications Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT CHECK (type IN ('bin_full', 'collection', 'points', 'report', 'reward', 'system')),
+    read BOOLEAN DEFAULT 0,
+    data TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX idx_notifications_user ON notifications(user_id);
+CREATE INDEX idx_notifications_read ON notifications(read);
+CREATE INDEX idx_notifications_created ON notifications(created_at);
+
+-- =============================================
+-- 9. Notification Preferences Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT UNIQUE NOT NULL,
+    email BOOLEAN DEFAULT 1,
+    push BOOLEAN DEFAULT 1,
+    sms BOOLEAN DEFAULT 0,
+    bin_full BOOLEAN DEFAULT 1,
+    collection_reminder BOOLEAN DEFAULT 1,
+    reward_updates BOOLEAN DEFAULT 1,
+    report_updates BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- 10. Push Subscriptions Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    user_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    keys TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(user_id, endpoint)
+);
+
+-- =============================================
+-- 11. Sensor Data Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS sensor_data (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    bin_id TEXT NOT NULL,
+    fill_level REAL NOT NULL,
+    temperature REAL,
+    humidity REAL,
+    is_full BOOLEAN DEFAULT 0,
+    battery_level REAL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bin_id) REFERENCES qr_bins(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX idx_sensor_data_bin ON sensor_data(bin_id);
+CREATE INDEX idx_sensor_data_timestamp ON sensor_data(timestamp);
+
+-- =============================================
+-- 12. Predictions Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS predictions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    area TEXT NOT NULL,
+    date DATE NOT NULL,
+    predicted_volume REAL NOT NULL,
+    confidence REAL NOT NULL,
+    factors TEXT,
+    recommendations TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(area, date)
+);
+
+-- Create indexes
+CREATE INDEX idx_predictions_area ON predictions(area);
+CREATE INDEX idx_predictions_date ON predictions(date);
+
+-- =============================================
+-- 13. Wards Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS wards (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || 
+                                 lower(hex(randomblob(2))) || '-4' || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 substr('89ab',abs(random()) % 4 + 1, 1) || 
+                                 substr(lower(hex(randomblob(2))),2) || '-' || 
+                                 lower(hex(randomblob(6)))),
+    name TEXT UNIQUE NOT NULL,
+    total_points INTEGER DEFAULT 0,
+    participation_rate REAL DEFAULT 0,
+    rank INTEGER,
+    level TEXT DEFAULT 'DEVELOPING',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- Create Triggers for Updated At
+-- =============================================
+CREATE TRIGGER update_users_updated_at 
+AFTER UPDATE ON users
+BEGIN
+    UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER update_notification_preferences_updated_at 
+AFTER UPDATE ON notification_preferences
+BEGIN
+    UPDATE notification_preferences SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER update_wards_updated_at 
+AFTER UPDATE ON wards
+BEGIN
+    UPDATE wards SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;

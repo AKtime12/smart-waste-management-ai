@@ -1,0 +1,638 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Scanner - Smart Waste Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fb 0%, #e8f0fe 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .scanner-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #reader {
+            width: 100%;
+            min-height: 400px;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .scan-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            border: 2px solid #22c55e;
+            border-radius: 1rem;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22c55e, #22c55e, transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .result-card.success {
+            display: block;
+            border-left: 4px solid #22c55e;
+        }
+
+        .result-card.error {
+            display: block;
+            border-left: 4px solid #ef4444;
+        }
+
+        .result-content-inner {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .household-info {
+            background: #e8f5e9;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin: 0.75rem 0;
+        }
+
+        .form-group {
+            margin-top: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .quality-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .quality-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quality-btn.excellent {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .quality-btn.good {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .quality-btn.poor {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .quality-btn.failed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .quality-btn.selected {
+            border: 2px solid;
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e2e8f0;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-bar {
+            background: #1e293b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 1rem;
+            left: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1100;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .notification-error {
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-qrcode"></i> QR Scanner</h1>
+            <p>Scan household QR code to record waste collection</p>
+        </div>
+
+        <div class="status-bar" id="status-bar">
+            <span><i class="fas fa-circle-notch fa-spin"></i> Ready</span>
+            <span id="connection-status">Online</span>
+        </div>
+
+        <div class="scanner-card">
+            <div class="video-container">
+                <div id="reader"></div>
+                <div class="scan-overlay" id="scan-overlay">
+                    <div class="scan-frame"></div>
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-card" class="result-card">
+            <div id="result-content"></div>
+        </div>
+
+        <div class="button-group">
+            <button id="start-btn" class="btn-primary">
+                <i class="fas fa-camera"></i> Start Scanner
+            </button>
+            <button id="stop-btn" class="btn-secondary hidden">
+                <i class="fas fa-stop"></i> Stop Scanner
+            </button>
+        </div>
+
+        <button id="back-btn" class="btn-secondary" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let html5QrCode = null;
+        let isScanning = false;
+        let selectedQuality = 'GOOD';
+        let currentQRData = null;
+        let currentHouseholdId = null;
+
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resultCard = document.getElementById('result-card');
+        const resultContent = document.getElementById('result-content');
+        const scanOverlay = document.getElementById('scan-overlay');
+
+        function showNotification(message, type) {
+            const n = document.createElement('div');
+            n.className = `notification notification-${type}`;
+            n.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`;
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+
+        function goBack() {
+            window.location.href = '/dashboard/collector.html';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        async function startScanner() {
+            if (isScanning) return;
+
+            try {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<div class="loading-spinner"></div> Starting...';
+
+                html5QrCode = new Html5Qrcode("reader");
+                scanOverlay.classList.remove('hidden');
+
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        console.log('✅ QR Code detected:', decodedText);
+                        showNotification('QR Code detected! Processing...', 'success');
+                        stopScanner();
+                        processQRCode(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Ignore scan errors
+                        console.log('Scanning...', errorMessage);
+                    }
+                );
+
+                isScanning = true;
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+                showNotification('Scanner started. Point camera at QR code.', 'success');
+
+            } catch (err) {
+                console.error('Scanner error:', err);
+                showNotification('Camera access denied or not supported', 'error');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+                scanOverlay.classList.add('hidden');
+            }
+        }
+
+        async function stopScanner() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    await html5QrCode.clear();
+                } catch (err) {
+                    console.error('Stop error:', err);
+                }
+            }
+            isScanning = false;
+            scanOverlay.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            showNotification('Scanner stopped', 'success');
+        }
+
+        function selectQuality(quality) {
+            selectedQuality = quality;
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent.trim().toUpperCase() === quality) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function resetScanner() {
+            resultCard.style.display = 'none';
+            resultContent.innerHTML = '';
+            currentQRData = null;
+            currentHouseholdId = null;
+            startScanner();
+        }
+
+        async function processQRCode(qrData) {
+            console.log('🔍 Processing QR code:', qrData);
+            currentQRData = qrData;
+
+            resultCard.classList.remove('success', 'error');
+            resultContent.innerHTML = '<div class="loading-spinner"></div> Processing...';
+            resultCard.style.display = 'block';
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Please login first');
+                }
+
+                // Parse QR data to extract household info
+                let householdInfo = null;
+                let householdId = '';
+                try {
+                    const parsed = JSON.parse(qrData);
+                    if (parsed.userId || parsed.name) {
+                        householdInfo = parsed;
+                        householdId = parsed.userId || parsed.id;
+                        currentHouseholdId = householdId;
+                        console.log('🏠 Household QR detected:', householdInfo);
+                    }
+                } catch (e) {
+                    console.log('Simple QR code:', qrData);
+                }
+
+                // Send scan request to backend
+                console.log('📡 Sending to backend...');
+                const response = await fetch(`${API_URL}/collector/scan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ qrData: qrData })
+                });
+
+                const data = await response.json();
+                console.log('📡 Backend response:', data);
+
+                if (response.ok && data.success) {
+                    resultCard.className = 'result-card success';
+
+                    let householdHtml = '';
+                    if (householdInfo) {
+                        householdHtml = `
+                            <div class="household-info">
+                                <p><i class="fas fa-user"></i> <strong>Household:</strong> ${escapeHtml(householdInfo.name || 'Household User')}</p>
+                                <p><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${escapeHtml(householdInfo.address || 'N/A')}</p>
+                                <p><i class="fas fa-star"></i> <strong>Points:</strong> ${householdInfo.points || 'N/A'}</p>
+                            </div>
+                        `;
+                    }
+
+                    resultContent.innerHTML = `
+                        <div class="result-content-inner">
+                            <i class="fas fa-check-circle" style="color: #22c55e; font-size: 1.5rem;"></i>
+                            <h3 style="margin: 0.5rem 0;">${householdInfo ? 'Household Scanned!' : 'QR Code Scanned!'}</h3>
+                            ${householdHtml}
+                            
+                            <div class="form-group">
+                                <label class="form-label">Waste Weight (kg):</label>
+                                <input type="number" id="waste-weight" placeholder="Enter weight" step="0.1" value="5" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Segregation Quality:</label>
+                                <div class="quality-group">
+                                    <button onclick="selectQuality('EXCELLENT')" class="quality-btn excellent">Excellent</button>
+                                    <button onclick="selectQuality('GOOD')" class="quality-btn good">Good</button>
+                                    <button onclick="selectQuality('POOR')" class="quality-btn poor">Poor</button>
+                                    <button onclick="selectQuality('FAILED')" class="quality-btn failed">Failed</button>
+                                </div>
+                            </div>
+                            
+                            <button onclick="recordCollection('${householdId}')" class="btn-primary">
+                                <i class="fas fa-save"></i> Record Collection
+                            </button>
+                        </div>
+                    `;
+
+                    selectQuality('GOOD');
+
+                } else {
+                    throw new Error(data.error || 'Failed to process QR');
+                }
+
+            } catch (error) {
+                console.error('❌ Processing error:', error);
+                resultCard.className = 'result-card error';
+                resultContent.innerHTML = `
+                    <div class="result-content-inner" style="background: #fee2e2; padding: 1rem; border-radius: 0.5rem;">
+                        <i class="fas fa-exclamation-circle" style="color: #ef4444; font-size: 1.5rem;"></i>
+                        <h3 style="margin: 0.5rem 0;">Scan Failed</h3>
+                        <p>${escapeHtml(error.message)}</p>
+                        <button onclick="resetScanner()" class="btn-primary">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function recordCollection(householdId) {
+            const weightInput = document.getElementById('waste-weight');
+            const weight = weightInput ? parseFloat(weightInput.value) || 5 : 5;
+            const recordBtn = document.querySelector('#result-content .btn-primary');
+
+            if (recordBtn) {
+                recordBtn.disabled = true;
+                recordBtn.innerHTML = '<div class="loading-spinner"></div> Recording...';
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+
+                const requestBody = {
+                    qrData: currentQRData,
+                    wasteWeight: weight,
+                    segregationQuality: selectedQuality
+                };
+
+                if (householdId && householdId !== '') {
+                    requestBody.householdId = householdId;
+                }
+
+                console.log('📡 Sending record request:', requestBody);
+
+                const response = await fetch(`${API_URL}/collector/scan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                console.log('📡 Record response:', data);
+
+                if (response.ok && data.success) {
+                    showNotification(`Collection recorded! +${data.points || 10} points!`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard/collector.html';
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Failed to record');
+                }
+            } catch (error) {
+                console.error('❌ Record error:', error);
+                showNotification('Failed to record collection: ' + error.message, 'error');
+                if (recordBtn) {
+                    recordBtn.disabled = false;
+                    recordBtn.innerHTML = '<i class="fas fa-save"></i> Record Collection';
+                }
+            }
+        }
+
+        startBtn.addEventListener('click', startScanner);
+        stopBtn.addEventListener('click', stopScanner);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isScanning) {
+                stopScanner();
+            }
+        });
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please login first', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+                return false;
+            }
+            console.log('✅ Authenticated');
+            return true;
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
