@@ -38,22 +38,22 @@ class RewardsService {
         return Math.floor(points);
     }
     
-    // Award points to household
-    async awardPoints(householdId, points, reason, collectionId = null) {
+    // Award points to household (with optional transaction type)
+    async awardPoints(householdId, points, reason, collectionId = null, transactionType = 'COLLECTION') {
         // Update user points
         const updatedUser = await prisma.user.update({
             where: { id: householdId },
             data: { points: { increment: points } }
         });
         
-        // Record transaction
+        // Record transaction with provided type
         await prisma.pointTransaction.create({
             data: {
                 userId: householdId,
                 points: points,
                 reason: reason,
                 collectionId: collectionId,
-                type: 'COLLECTION'
+                type: transactionType
             }
         });
         
@@ -63,7 +63,7 @@ class RewardsService {
         return updatedUser.points;
     }
     
-    // Calculate ward points
+    // Calculate ward points (unchanged)
     async calculateWardPoints(wardId) {
         const collections = await prisma.collection.findMany({
             where: {
@@ -106,10 +106,10 @@ class RewardsService {
                 data: { tier: newTier }
             });
             
-            // Award tier upgrade bonus
+            // Award tier upgrade bonus (uses COLLECTION type, but we can pass 'TIER_UPGRADE')
             const bonus = this.getTierBonus(newTier);
             if (bonus > 0) {
-                await this.awardPoints(userId, bonus, `Tier upgrade to ${newTier}`, null);
+                await this.awardPoints(userId, bonus, `Tier upgrade to ${newTier}`, null, 'TIER_UPGRADE');
             }
         }
         

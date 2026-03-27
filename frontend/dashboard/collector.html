@@ -6,6 +6,7 @@
     <title>Collector Dashboard - Smart Waste Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f5f7fb; }
@@ -63,6 +64,16 @@
             font-weight: 500;
         }
         .btn-primary:hover { background: #16a34a; }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
         .logout {
             background: #ef4444;
             color: white;
@@ -98,6 +109,16 @@
             animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .qr-container {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -128,6 +149,15 @@
                 <i class="fas fa-camera"></i> Open QR Scanner
             </button>
         </div>
+
+        <div class="dashboard-card" id="qr-section" style="display: none;">
+            <h3><i class="fas fa-qrcode"></i> Collection QR Code</h3>
+            <p>Scan this QR at the factory for verification. Attach it to the waste bag.</p>
+            <div id="collection-qr" class="qr-container"></div>
+            <button id="download-qr" class="btn-primary">Download QR Code</button>
+            <button id="clear-qr" class="btn-secondary">Clear</button>
+        </div>
+
         <div class="dashboard-card">
             <h3><i class="fas fa-map-marked-alt"></i> Live Tracking</h3>
             <p>View your current location and assigned bins on a map.</p>
@@ -146,12 +176,65 @@
             <div id="history-list"><div class="loading-spinner"></div></div>
         </div>
     </div>
-  
 
     <script>
         const API_URL = 'http://localhost:5000/api';
         let currentUser = null;
+        let currentCollectionId = null;
 
+        // ============================================
+        // QR Code Functions
+        // ============================================
+        function showQRCode(collectionId) {
+            console.log('showQRCode called with ID:', collectionId);
+            const qrDiv = document.getElementById('collection-qr');
+            if (!qrDiv) {
+                console.error('QR container not found');
+                return;
+            }
+            qrDiv.innerHTML = '';
+            new QRCode(qrDiv, {
+                text: collectionId,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            document.getElementById('qr-section').style.display = 'block';
+            currentCollectionId = collectionId;
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#collection-qr canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = `collection-${currentCollectionId}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } else {
+                alert('QR code not ready yet.');
+            }
+        }
+
+        function clearQR() {
+            document.getElementById('qr-section').style.display = 'none';
+            localStorage.removeItem('lastCollectionId');
+            currentCollectionId = null;
+        }
+
+        function checkForStoredCollection() {
+            console.log('Checking for stored collection ID...');
+            const storedId = localStorage.getItem('lastCollectionId');
+            console.log('Stored ID:', storedId);
+            if (storedId) {
+                showQRCode(storedId);
+            }
+        }
+
+        // ============================================
+        // Authentication & Data Loading
+        // ============================================
         async function checkAuth() {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -188,6 +271,11 @@
                 const binsRes = await fetch(`${API_URL}/collector/bins`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (!binsRes.ok) {
+                    console.warn('Bins API failed, using demo data');
+                    useDemoData();
+                    return;
+                }
                 const bins = await binsRes.json();
                 displayBins(bins);
                 const historyRes = await fetch(`${API_URL}/collector/history`, {
@@ -264,6 +352,9 @@
             if (isAuth) {
                 await loadDashboardData();
                 setInterval(loadDashboardData, 30000);
+                checkForStoredCollection();
+                document.getElementById('download-qr').addEventListener('click', downloadQR);
+                document.getElementById('clear-qr').addEventListener('click', clearQR);
             }
         }
 

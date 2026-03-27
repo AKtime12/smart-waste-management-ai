@@ -136,7 +136,8 @@
             <strong>Demo Credentials:</strong><br>
             Admin: admin@smartwaste.com / admin123<br>
             Collector: collector@smartwaste.com / collector123<br>
-            Household: household@smartwaste.com / user123
+            Household: household@smartwaste.com / user123<br>
+            Factory: factory@smartwaste.com / factory123
         </div>
     </div>
 
@@ -174,10 +175,15 @@
                     successDiv.style.display = 'block';
                     
                     setTimeout(() => {
-                        if (data.user.role === 'ADMIN') {
+                        const role = data.user.role;
+                        if (role === 'ADMIN') {
                             window.location.href = '/dashboard/admin.html';
-                        } else if (data.user.role === 'COLLECTOR') {
+                        } else if (role === 'COLLECTOR') {
                             window.location.href = '/dashboard/collector.html';
+                        } else if (role === 'HOUSEHOLD') {
+                            window.location.href = '/dashboard/household.html';
+                        } else if (role === 'FACTORY') {
+                            window.location.href = '/dashboard/factory.html';
                         } else {
                             window.location.href = '/dashboard/household.html';
                         }

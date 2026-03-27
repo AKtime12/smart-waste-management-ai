@@ -1,1036 +1,346 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Smart Waste Management</title>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
-    <link rel="manifest" href="/mobile/manifest.json">
-    <meta name="theme-color" content="#16a34a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Fonts & Icons -->
+    <title>Factory Dashboard - Smart Waste Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
-        /* ============================================
-           GLOBAL RESET & VARIABLES
-        ============================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #22c55e;
-            --primary-dark: #16a34a;
-            --secondary: #3b82f6;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --radius-sm: 0.375rem;
-            --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
-        }
-
+        /* Keep your existing styles – unchanged */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--gray-50);
-            overflow-x: hidden;
+            background: #f5f7fb;
+            padding: 1rem;
         }
-
-        /* Dashboard Layout */
-        .dashboard {
-            display: flex;
-            min-height: 100vh;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
             color: white;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-            z-index: 100;
-        }
-
-        .sidebar-brand {
             padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-
-        .sidebar-brand i {
-            font-size: 1.75rem;
-            color: var(--primary);
-        }
-
-        .sidebar-nav {
-            padding: 1.5rem 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin: 0.25rem 0;
-        }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: white;
-            border-right: 3px solid white;
-        }
-
-        .nav-item i {
-            width: 1.25rem;
-        }
-
-        .sidebar-footer {
-            padding: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            margin-top: auto;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-avatar i {
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 0.625rem;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-        }
-
-        /* Top Bar */
-        .top-bar {
-            background: white;
-            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--gray-200);
-            position: sticky;
-            top: 0;
-            z-index: 90;
-            box-shadow: var(--shadow-sm);
         }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
+        .btn-logout {
+            background: #ef4444;
             border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: var(--gray-500);
-        }
-
-        .search-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--gray-100);
             padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            width: 300px;
-        }
-
-        .search-bar i {
-            color: var(--gray-400);
-        }
-
-        .search-bar input {
-            background: none;
-            border: none;
-            outline: none;
-            flex: 1;
-            font-size: 0.875rem;
-        }
-
-        .top-bar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .notification-bell {
-            position: relative;
+            border-radius: 0.5rem;
+            color: white;
             cursor: pointer;
-        }
-
-        .notification-bell i {
-            font-size: 1.25rem;
-            color: var(--gray-500);
-        }
-
-        .notification-bell .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--danger);
-            color: white;
-            font-size: 0.625rem;
-            padding: 0.125rem 0.375rem;
-            border-radius: 9999px;
-        }
-
-        .date-time {
-            font-size: 0.875rem;
-            color: var(--gray-500);
-        }
-
-        /* Page Content */
-        .page {
-            display: none;
-            padding: 2rem;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: var(--gray-800);
-        }
-
-        .page-header p {
-            color: var(--gray-500);
-            margin-top: 0.25rem;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .stat-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: var(--radius-xl);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-icon i {
-            font-size: 1.75rem;
-        }
-
-        .stat-icon-users { background: #e8f5e9; color: var(--primary); }
-        .stat-icon-collections { background: #e3f2fd; color: var(--secondary); }
-        .stat-icon-points { background: #fff3e0; color: var(--warning); }
-        .stat-icon-carbon { background: #e8f0fe; color: var(--primary); }
-        .stat-icon-bins { background: #e8f5e9; color: var(--primary); }
-        .stat-icon-full { background: #fee2e2; color: var(--danger); }
-        .stat-icon-fill { background: #fff3e0; color: var(--warning); }
-
-        .stat-info h3 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--gray-800);
-        }
-
-        .stat-info p {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-        }
-
-        /* Charts */
-        .charts-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .chart-card h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--gray-700);
-        }
-
-        .chart-card canvas {
-            max-height: 300px;
-            width: 100%;
-        }
-
-        /* AI Predictions */
-        .ai-predictions {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            color: white;
-        }
-
-        .ai-predictions h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .predictions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-        }
-
-        .prediction-card {
-            background: rgba(255, 255, 255, 0.15);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            text-align: center;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .prediction-date {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .prediction-waste {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-
-        .festival-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--warning);
-            color: white;
-            font-size: 0.625rem;
-            padding: 0.125rem 0.375rem;
-            border-radius: 9999px;
-        }
-
-        /* Top Performers & Reports */
-        .top-performers, .recent-reports {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .performers-list {
-            margin-top: 1rem;
-        }
-
-        .performer-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .performer-item:last-child {
-            border-bottom: none;
-        }
-
-        .performer-rank {
-            width: 40px;
-            height: 40px;
-            background: var(--gray-100);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .performer-info {
-            flex: 1;
-        }
-
-        .performer-info h4 {
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .performer-info p {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-        }
-
-        .performer-points {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .performer-carbon {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-        }
-
-        /* Tables */
-        .reports-table {
-            overflow-x: auto;
-        }
-
-        .reports-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .reports-table th,
-        .reports-table td {
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .reports-table th {
-            font-weight: 600;
-            color: var(--gray-600);
-            background: var(--gray-50);
-        }
-
-        /* Badges & Status */
-        .status-badge {
+            transition: background 0.2s;
+            text-decoration: none;
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
         }
-
-        .status-pending { background: #fef3c7; color: #d97706; }
-        .status-resolved { background: #dcfce7; color: #16a34a; }
-        .status-success { background: #dcfce7; color: #16a34a; }
-        .status-warning { background: #fef3c7; color: #d97706; }
-
-        .fill-high { color: var(--danger); font-weight: 600; }
-        .fill-medium { color: var(--warning); font-weight: 600; }
-        .fill-low { color: var(--primary); font-weight: 600; }
-
-        /* Buttons */
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.625rem 1.25rem;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
+        .btn-logout:hover {
+            background: #dc2626;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+        .qr-container {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        #reader {
+            width: 100%;
+            min-height: 300px;
+            background: #000;
+        }
+        .camera-preview {
+            position: relative;
+            background: #000;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        #video {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+            background: #000;
+        }
+        .photo-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        #photo {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            display: none;
+        }
+        button {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin: 0.5rem 0;
             transition: all 0.2s;
         }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #16a34a;
             transform: translateY(-1px);
         }
-
+        .btn-secondary {
+            background: #3b82f6;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+        .btn-warning {
+            background: #f59e0b;
+        }
+        .btn-warning:hover:not(:disabled) {
+            background: #d97706;
+        }
         .btn-small {
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
-            background: var(--gray-100);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
+            background: #f1f5f9;
+            color: #1e293b;
         }
-
         .btn-small:hover {
-            background: var(--gray-200);
+            background: #e2e8f0;
         }
-
-        /* Loading & Notifications */
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+        .result-success {
+            background: #dcfce7;
+            color: #16a34a;
+            display: block;
+        }
+        .result-error {
+            background: #fee2e2;
+            color: #dc2626;
+            display: block;
+        }
+        .pending-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .pending-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .loading-spinner {
             display: inline-block;
-            width: 1.5rem;
-            height: 1.5rem;
-            border: 2px solid var(--gray-200);
-            border-top-color: var(--primary);
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e2e8f0;
+            border-top-color: #22c55e;
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .notification {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            padding: 1rem 1.25rem;
-            border-radius: var(--radius-md);
-            background: white;
-            box-shadow: var(--shadow-lg);
+        .flex-between {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.75rem;
-            z-index: 1100;
-            animation: slideIn 0.3s ease;
-            max-width: 400px;
         }
-
-        .notification-success { border-left: 4px solid var(--primary); }
-        .notification-error { border-left: 4px solid var(--danger); }
-        .notification-warning { border-left: 4px solid var(--warning); }
-        .notification-info { border-left: 4px solid var(--secondary); }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .hidden {
+            display: none;
         }
-
-        /* Settings & Forms */
-        .settings-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .setting-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .setting-item label {
-            width: 200px;
-            font-weight: 500;
-        }
-
-        .form-input {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius-md);
+        .error-message {
+            color: #ef4444;
+            margin-top: 0.5rem;
             font-size: 0.875rem;
         }
-
-        /* Demo Notice */
-        .demo-notice {
+        .qr-result {
+            background: #f1f5f9;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .ai-prediction {
+            margin-top: 1rem;
+            padding: 0.75rem;
             background: #fef3c7;
-            border-left: 4px solid var(--warning);
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            margin: 0 2rem 1rem 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .demo-notice .close-btn {
-            margin-left: auto;
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: #92400e;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .mobile-menu-toggle {
-                display: block;
-            }
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .search-bar {
-                display: none;
-            }
-            .page {
-                padding: 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .demo-notice {
-                margin: 0 1rem 1rem 1rem;
-            }
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <i class="fas fa-trash-alt"></i>
-                <span>SmartWaste Admin</span>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-industry"></i> Factory Verification Station</h1>
+            <div>
+                <a href="/dashboard/admin.html" class="btn-logout" style="background: #3b82f6; margin-right: 0.5rem;">← Back to Admin</a>
+                <button class="btn-logout" onclick="logout()">Logout</button>
             </div>
-            <nav class="sidebar-nav">
-                <div class="nav-item active" data-page="overview">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Overview</span>
-                </div>
-                <div class="nav-item" data-page="analytics">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analytics</span>
-                </div>
-                <div class="nav-item" data-page="bins">
-                    <i class="fas fa-trash"></i>
-                    <span>Bins</span>
-                </div>
-                <div class="nav-item" data-page="collectors">
-                    <i class="fas fa-truck"></i>
-                    <span>Collectors</span>
-                </div>
-                <div class="nav-item" data-page="households">
-                    <i class="fas fa-users"></i>
-                    <span>Households</span>
-                </div>
-                <div class="nav-item" data-page="reports">
-                    <i class="fas fa-flag"></i>
-                    <span>Reports</span>
-                </div>
-                <!-- NEW Factory Page -->
-                <div class="nav-item" data-page="factory">
-                    <i class="fas fa-industry"></i>
-                    <span>Factory</span>
-                </div>
-                <div class="nav-item" data-page="rewards">
-                    <i class="fas fa-gift"></i>
-                    <span>Rewards</span>
-                </div>
-                <div class="nav-item" data-page="settings">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </div>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div>
-                        <p id="admin-name">Admin User</p>
-                        <small id="admin-email">admin@smartwaste.com</small>
-                    </div>
-                </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </aside>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar">
-                <button class="mobile-menu-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-input" placeholder="Search...">
+        <div class="dashboard-grid">
+            <!-- QR Scanner Card -->
+            <div class="card">
+                <h2><i class="fas fa-qrcode"></i> Scan Collection QR</h2>
+                <div class="qr-container">
+                    <div id="reader"></div>
                 </div>
-                <div class="top-bar-actions">
-                    <div class="notification-bell" onclick="showNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge" id="notification-count">3</span>
-                    </div>
-                    <div class="date-time" id="date-time"></div>
+                <div class="flex-between">
+                    <button id="start-scan-btn">Start Scanner</button>
+                    <button id="stop-scan-btn" class="hidden">Stop Scanner</button>
                 </div>
-            </header>
-
-            <!-- Demo Notice -->
-            <div class="demo-notice" id="demo-notice">
-                <span>ℹ️</span>
-                <span><strong>Demo Mode:</strong> This dashboard is using demo data. Connect to backend for live data.</span>
-                <button class="close-btn" onclick="closeDemoNotice()">&times;</button>
+                <div id="qr-error" class="error-message hidden"></div>
+                <div id="qr-result" class="qr-result hidden"></div>
             </div>
 
-            <!-- Overview Page -->
-            <div id="overview-page" class="page active">
-                <div class="page-header">
-                    <h1>Dashboard Overview</h1>
-                    <p>Welcome back! Here's what's happening in your waste management system.</p>
+            <!-- Camera & Verification Card -->
+            <div class="card">
+                <h2><i class="fas fa-camera"></i> Capture Waste Image</h2>
+                <div class="camera-preview">
+                    <video id="video" autoplay muted></video>
                 </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon stat-icon-users"><i class="fas fa-users"></i></div>
-                        <div class="stat-info"><h3 id="total-users">1,247</h3><p>Total Users</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon stat-icon-collections"><i class="fas fa-trash"></i></div>
-                        <div class="stat-info"><h3 id="total-collections">8,432</h3><p>Collections</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon stat-icon-points"><i class="fas fa-star"></i></div>
-                        <div class="stat-info"><h3 id="total-points">125,430</h3><p>Points Awarded</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon stat-icon-carbon"><i class="fas fa-leaf"></i></div>
-                        <div class="stat-info"><h3 id="carbon-saved">23.5</h3><p>CO₂ Saved (tons)</p></div>
-                    </div>
+                <div id="camera-error" class="error-message hidden"></div>
+                <div class="photo-preview">
+                    <img id="photo" alt="Captured photo">
                 </div>
-
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <h3><i class="fas fa-chart-line"></i> Waste Collection Trends</h3>
-                        <canvas id="collection-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3><i class="fas fa-chart-pie"></i> Waste Composition</h3>
-                        <canvas id="composition-chart"></canvas>
-                    </div>
+                <div class="flex-between">
+                    <button id="capture-btn" disabled>Take Photo</button>
+                    <button id="verify-btn" disabled class="btn-warning">Verify & Award Points</button>
                 </div>
-
-                <div class="ai-predictions">
-                    <h3><i class="fas fa-robot"></i> AI Predictions - Next 7 Days</h3>
-                    <div class="predictions-grid" id="predictions-grid">
-                        <div class="prediction-card"><div class="prediction-date">Mar 26</div><div class="prediction-waste">245 kg</div><div>🚛 2 trucks</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Mar 27</div><div class="prediction-waste">312 kg</div><div>🚛 3 trucks</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Mar 28</div><div class="prediction-waste">289 kg</div><div>🚛 2 trucks</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Mar 29</div><div class="prediction-waste">356 kg</div><div>🚛 3 trucks</div><div class="festival-badge">🎉</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Mar 30</div><div class="prediction-waste">298 kg</div><div>🚛 2 trucks</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Mar 31</div><div class="prediction-waste">267 kg</div><div>🚛 2 trucks</div></div>
-                        <div class="prediction-card"><div class="prediction-date">Apr 1</div><div class="prediction-waste">278 kg</div><div>🚛 2 trucks</div></div>
-                    </div>
-                </div>
-
-                <div class="top-performers">
-                    <h3><i class="fas fa-trophy"></i> Top Performing Households</h3>
-                    <div class="performers-list">
-                        <div class="performer-item">
-                            <div class="performer-rank">#1</div>
-                            <div class="performer-info"><h4>Green Family</h4><p>45 collections</p></div>
-                            <div class="performer-points"><i class="fas fa-star"></i> 2,450 pts</div>
-                        </div>
-                        <div class="performer-item">
-                            <div class="performer-rank">#2</div>
-                            <div class="performer-info"><h4>Eco Warriors</h4><p>38 collections</p></div>
-                            <div class="performer-points"><i class="fas fa-star"></i> 1,980 pts</div>
-                        </div>
-                        <div class="performer-item">
-                            <div class="performer-rank">#3</div>
-                            <div class="performer-info"><h4>Sustainable Living</h4><p>32 collections</p></div>
-                            <div class="performer-points"><i class="fas fa-star"></i> 1,670 pts</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="recent-reports">
-                    <h3><i class="fas fa-flag"></i> Recent Reports</h3>
-                    <div class="reports-table">
-                        <table>
-                            <thead>
-                                <tr><th>Location</th><th>Description</th><th>Status</th><th>Date</th></tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Green Society, Ward A</td><td>Bin overflow at main gate</td><td><span class="status-badge status-pending">Pending</span></td><td>2024-03-25</td></tr>
-                                <tr><td>Eco Colony, Ward B</td><td>Missed collection yesterday</td><td><span class="status-badge status-resolved">Resolved</span></td><td>2024-03-24</td></tr>
-                                <tr><td>Downtown Area</td><td>Illegal dumping reported</td><td><span class="status-badge status-pending">Pending</span></td><td>2024-03-23</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div id="ai-prediction" class="ai-prediction hidden"></div>
+                <div id="verification-result" class="result"></div>
             </div>
 
-            <!-- Analytics Page -->
-            <div id="analytics-page" class="page">
-                <div class="page-header">
-                    <h1>Advanced Analytics</h1>
-                    <p>Detailed insights and performance metrics</p>
-                </div>
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <h3>Collections by Day of Week</h3>
-                        <canvas id="weekly-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>Collections by Hour</h3>
-                        <canvas id="hourly-chart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>Monthly Performance</h3>
-                    <canvas id="monthly-chart"></canvas>
-                </div>
-            </div>
-
-            <!-- Bins Page -->
-            <div id="bins-page" class="page">
-                <div class="page-header">
-                    <h1>Bin Management</h1>
-                    <p>Monitor and manage all waste bins</p>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-icon stat-icon-bins"><i class="fas fa-trash"></i></div><div class="stat-info"><h3>24</h3><p>Total Bins</p></div></div>
-                    <div class="stat-card"><div class="stat-icon stat-icon-full"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-info"><h3>6</h3><p>Full Bins</p></div></div>
-                    <div class="stat-card"><div class="stat-icon stat-icon-fill"><i class="fas fa-chart-line"></i></div><div class="stat-info"><h3>52%</h3><p>Average Fill Level</p></div></div>
-                </div>
-                <div class="reports-table">
-                    <table id="bins-table">
-                        <thead><tr><th>QR Code</th><th>Type</th><th>Ward</th><th>Fill Level</th><th>Status</th><th>Last Updated</th></tr></thead>
-                        <tbody>
-                            <tr><td>BIN001</td><td>Organic</td><td>Ward A</td><td class="fill-high">85%</td><td><span class="status-badge status-warning">Full</span></td><td>2024-03-25</td></tr>
-                            <tr><td>BIN002</td><td>Recyclable</td><td>Ward A</td><td class="fill-medium">45%</td><td><span class="status-badge status-success">Available</span></td><td>2024-03-25</td></tr>
-                            <tr><td>BIN003</td><td>Non-Recyclable</td><td>Ward B</td><td class="fill-high">92%</td><td><span class="status-badge status-warning">Full</span></td><td>2024-03-25</td></tr>
-                            <tr><td>BIN004</td><td>Hazardous</td><td>Ward A</td><td class="fill-low">30%</td><td><span class="status-badge status-success">Available</span></td><td>2024-03-24</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Collectors Page -->
-            <div id="collectors-page" class="page">
-                <div class="page-header"><h1>Collector Management</h1><p>Manage and track collector performance</p></div>
-                <div class="reports-table">
-                    <table id="collectors-table">
-                        <thead><tr><th>Name</th><th>Email</th><th>Collections</th><th>Points</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody>
-                            <tr><td>Rajesh Kumar</td><td>rajesh@smartwaste.com</td><td>156</td><td>1,250</td><td><span class="status-badge status-success">Active</span></td><td><button class="btn-small">Edit</button></td></tr>
-                            <tr><td>Priya Sharma</td><td>priya@smartwaste.com</td><td>142</td><td>1,140</td><td><span class="status-badge status-success">Active</span></td><td><button class="btn-small">Edit</button></td></tr>
-                            <tr><td>Amit Singh</td><td>amit@smartwaste.com</td><td>128</td><td>1,020</td><td><span class="status-badge status-success">Active</span></td><td><button class="btn-small">Edit</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Households Page -->
-            <div id="households-page" class="page">
-                <div class="page-header"><h1>Household Management</h1><p>View and manage all registered households</p></div>
-                <div class="reports-table">
-                    <table id="households-table">
-                        <thead><tr><th>Name</th><th>Email</th><th>Address</th><th>Points</th><th>Collections</th><th>Joined</th></tr></thead>
-                        <tbody>
-                            <tr><td>Green Family</td><td>green@example.com</td><td>123 Green Street</td><td>2,450</td><td>45</td><td>Jan 2024</td></tr>
-                            <tr><td>Eco Warriors</td><td>eco@example.com</td><td>456 Environment Ave</td><td>1,980</td><td>38</td><td>Feb 2024</td></tr>
-                            <tr><td>Sustainable Living</td><td>sustainable@example.com</td><td>789 Planet Road</td><td>1,670</td><td>32</td><td>Jan 2024</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Reports Page -->
-            <div id="reports-page" class="page">
-                <div class="page-header"><h1>User Reports</h1><p>Manage and respond to user reports</p></div>
-                <div class="reports-table">
-                    <table id="reports-table-full">
-                        <thead><tr><th>ID</th><th>User</th><th>Location</th><th>Description</th><th>Status</th><th>Reported</th><th>Actions</th></tr></thead>
-                        <tbody>
-                            <tr><td>RPT001</td><td>John Doe</td><td>Green Society</td><td>Bin overflow</td><td><span class="status-badge status-pending">Pending</span></td><td>2024-03-25</td><td><button class="btn-small">Update</button></td></tr>
-                            <tr><td>RPT002</td><td>Jane Smith</td><td>Eco Colony</td><td>Missed collection</td><td><span class="status-badge status-resolved">Resolved</span></td><td>2024-03-24</td><td><button class="btn-small">Update</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- NEW Factory Page -->
-            <div id="factory-page" class="page">
-                <div class="page-header">
-                    <h1><i class="fas fa-industry"></i> Factory Verifications</h1>
-                    <p>Verify waste collections at the recycling center</p>
-                </div>
-                <div class="reports-table" id="pending-verifications">
+            <!-- Pending Verifications -->
+            <div class="card">
+                <h2><i class="fas fa-clock"></i> Pending Verifications</h2>
+                <div id="pending-list" class="pending-list">
                     <div class="loading-spinner"></div>
                 </div>
             </div>
-
-            <!-- Rewards Page -->
-            <div id="rewards-page" class="page">
-                <div class="page-header"><h1>Rewards Management</h1><p>Create and manage rewards for users</p></div>
-                <div class="reports-table">
-                    <table id="rewards-table">
-                        <thead><tr><th>Name</th><th>Description</th><th>Points</th><th>Category</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody>
-                            <tr><td>₹100 Amazon Voucher</td><td>Amazon gift card</td><td>500</td><td>Vouchers</td><td>50</td><td><span class="status-badge status-success">Active</span></td><td><button class="btn-small">Edit</button></td></tr>
-                            <tr><td>Eco Water Bottle</td><td>Stainless steel bottle</td><td>300</td><td>Products</td><td>25</td><td><span class="status-badge status-success">Active</span></td><td><button class="btn-small">Edit</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Settings Page -->
-            <div id="settings-page" class="page">
-                <div class="page-header"><h1>System Settings</h1><p>Configure system preferences</p></div>
-                <div class="chart-card">
-                    <h3>Notification Settings</h3>
-                    <div class="settings-group">
-                        <label><input type="checkbox" id="email-notifications"> Email Notifications</label>
-                        <label><input type="checkbox" id="push-notifications"> Push Notifications</label>
-                        <label><input type="checkbox" id="sms-alerts"> SMS Alerts</label>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>System Configuration</h3>
-                    <div class="settings-group">
-                        <div class="setting-item">
-                            <label>Default Collection Time:</label>
-                            <input type="time" id="default-collection-time" class="form-input">
-                        </div>
-                        <div class="setting-item">
-                            <label>Minimum Points for Reward:</label>
-                            <input type="number" id="min-points-reward" value="100" class="form-input">
-                        </div>
-                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script>
-        // ============================================
-        // CONFIGURATION
-        // ============================================
         const API_URL = 'http://localhost:5000/api';
-        let currentUser = null;
-        let collectionChart = null;
-        let compositionChart = null;
-        let weeklyChart = null;
-        let hourlyChart = null;
-        let monthlyChart = null;
+        let currentCollectionId = null;
+        let html5QrCode = null;
+        let isScanning = false;
+        let stream = null;
+        let capturedPhoto = null;
+        let videoPlaying = false;
+        let aiModel = null;
+        let currentPrediction = null;
+
+        // DOM elements
+        const startScanBtn = document.getElementById('start-scan-btn');
+        const stopScanBtn = document.getElementById('stop-scan-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const video = document.getElementById('video');
+        const photoImg = document.getElementById('photo');
+        const qrResultDiv = document.getElementById('qr-result');
+        const qrErrorDiv = document.getElementById('qr-error');
+        const cameraErrorDiv = document.getElementById('camera-error');
+        const aiPredictionDiv = document.getElementById('ai-prediction');
+        const verificationResult = document.getElementById('verification-result');
+        const pendingListDiv = document.getElementById('pending-list');
+
+        function show(element) { element.classList.remove('hidden'); }
+        function hide(element) { element.classList.add('hidden'); }
 
         // ============================================
-        // INITIALIZATION
+        // Map ImageNet labels to waste categories
         // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            initCharts();
-            updateDateTime();
-            setupEventListeners();
-            loadDashboardData();
-            setInterval(updateDateTime, 1000);
-            setInterval(refreshData, 30000);
-        });
+        function mapToWasteCategory(label) {
+            const organicKeywords = ['leaf', 'fruit', 'vegetable', 'apple', 'banana', 'orange', 'peel', 'food', 'bread', 'cake', 'sandwich', 'tree', 'plant', 'flower', 'grass', 'mushroom'];
+            const recyclableKeywords = ['plastic', 'bottle', 'bag', 'container', 'can', 'tin', 'aluminum', 'glass', 'paper', 'cardboard', 'newspaper', 'magazine', 'box', 'packaging', 'carton'];
+            const hazardousKeywords = ['battery', 'chemical', 'paint', 'oil', 'medicine', 'drug', 'syringe', 'needle', 'pesticide', 'solvent', 'acid', 'bleach', 'aerosol'];
+            
+            const lowerLabel = label.toLowerCase();
+            if (organicKeywords.some(k => lowerLabel.includes(k))) return 'ORGANIC';
+            if (recyclableKeywords.some(k => lowerLabel.includes(k))) return 'RECYCLABLE';
+            if (hazardousKeywords.some(k => lowerLabel.includes(k))) return 'HAZARDOUS';
+            return 'NON_RECYCLABLE';
+        }
 
         // ============================================
-        // AUTHENTICATION
+        // Load AI Model
+        // ============================================
+        async function loadAIModel() {
+            try {
+                aiModel = await mobilenet.load();
+                console.log('AI Model loaded successfully');
+                return true;
+            } catch (err) {
+                console.error('Failed to load AI model:', err);
+                showNotification('AI model failed to load. Please refresh.', 'error');
+                return false;
+            }
+        }
+
+        // ============================================
+        // Classify Image
+        // ============================================
+        async function classifyImage(imageElement) {
+            if (!aiModel) return null;
+            try {
+                const predictions = await aiModel.classify(imageElement);
+                if (predictions && predictions.length > 0) {
+                    const topPrediction = predictions[0];
+                    const wasteCategory = mapToWasteCategory(topPrediction.className);
+                    return {
+                        category: wasteCategory,
+                        confidence: topPrediction.probability,
+                        rawLabel: topPrediction.className
+                    };
+                }
+                return null;
+            } catch (err) {
+                console.error('Classification error:', err);
+                return null;
+            }
+        }
+
+        // ============================================
+        // Authentication
         // ============================================
         async function checkAuth() {
             const token = localStorage.getItem('token');
@@ -1039,310 +349,280 @@
                 return false;
             }
             try {
-                const response = await fetch(`${API_URL}/auth/profile`, {
+                const res = await fetch(`${API_URL}/auth/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUser = data.user;
-                    document.getElementById('admin-name').textContent = currentUser.name;
-                    document.getElementById('admin-email').textContent = currentUser.email;
-                    return true;
-                } else {
-                    throw new Error('Unauthorized');
-                }
+                if (!res.ok) throw new Error('Unauthorized');
+                return true;
             } catch (error) {
-                console.error('Auth failed:', error);
-                localStorage.removeItem('token');
+                localStorage.clear();
                 window.location.href = '/login.html';
                 return false;
             }
         }
 
         // ============================================
-        // DASHBOARD DATA
+        // QR Scanner
         // ============================================
-        async function loadDashboardData() {
+        async function startScanner() {
+            if (isScanning) return;
+            hide(qrErrorDiv);
+            try {
+                html5QrCode = new Html5Qrcode("reader");
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    onScanError
+                );
+                isScanning = true;
+                hide(startScanBtn);
+                show(stopScanBtn);
+            } catch (err) {
+                console.error('Scanner error:', err);
+                qrErrorDiv.textContent = 'Could not start scanner: ' + err.message;
+                show(qrErrorDiv);
+            }
+        }
+
+        async function stopScanner() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    await html5QrCode.clear();
+                } catch (err) { console.warn('Stop error:', err); }
+                isScanning = false;
+                show(startScanBtn);
+                hide(stopScanBtn);
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            console.log('QR scanned:', decodedText);
+            currentCollectionId = decodedText;
+            qrResultDiv.innerHTML = `<p><strong>Scanned Collection ID:</strong> ${decodedText}</p><p>Now take a photo and verify.</p>`;
+            show(qrResultDiv);
+            captureBtn.disabled = false;
+            verifyBtn.disabled = true; // wait for photo
+            stopScanner(); // stop scanning after success
+        }
+
+        function onScanError(err) {
+            // ignore
+        }
+
+        // ============================================
+        // Camera & Photo Capture
+        // ============================================
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+                await video.play();
+                videoPlaying = true;
+                hide(cameraErrorDiv);
+                captureBtn.disabled = false;
+                console.log('Camera started successfully');
+            } catch (err) {
+                console.error('Camera error:', err);
+                cameraErrorDiv.textContent = 'Could not access camera: ' + err.message;
+                show(cameraErrorDiv);
+                captureBtn.disabled = true;
+            }
+        }
+
+        async function capturePhoto() {
+            if (!videoPlaying) {
+                alert('Video not ready. Please wait.');
+                return;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            capturedPhoto = dataUrl;
+            photoImg.src = dataUrl;
+            photoImg.style.display = 'block';
+
+            // Show AI classification in progress
+            aiPredictionDiv.innerHTML = '<div class="loading-spinner"></div> AI analyzing waste...';
+            show(aiPredictionDiv);
+            
+            // Classify the captured image
+            const imgElement = new Image();
+            imgElement.src = dataUrl;
+            await new Promise((resolve) => { imgElement.onload = resolve; });
+            const prediction = await classifyImage(imgElement);
+            
+            if (prediction) {
+                currentPrediction = prediction;
+                aiPredictionDiv.innerHTML = `
+                    <strong>AI Analysis:</strong> ${prediction.category}<br>
+                    <small>Confidence: ${(prediction.confidence * 100).toFixed(1)}%</small>
+                `;
+                verifyBtn.disabled = false;
+            } else {
+                aiPredictionDiv.innerHTML = 'AI classification failed. You can still verify manually.';
+                verifyBtn.disabled = false; // allow manual verification anyway
+            }
+        }
+
+        // ============================================
+        // Verification (sends prediction to backend)
+        // ============================================
+        async function verifyCollection() {
+            if (!currentCollectionId) {
+                alert('Please scan a QR code first.');
+                return;
+            }
+            if (!capturedPhoto) {
+                alert('Please capture a photo first.');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<div class="loading-spinner"></div> Verifying...';
+
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/admin/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const requestBody = {
+                    collectionId: currentCollectionId,
+                    imageUrl: capturedPhoto,      // keep for fallback
+                    predictedCategory: currentPrediction ? currentPrediction.category : null,
+                    confidence: currentPrediction ? currentPrediction.confidence : null
+                };
+                
+                const response = await fetch(`${API_URL}/factory/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
                 });
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('total-users').textContent = (data.totalUsers || 0).toLocaleString();
-                    document.getElementById('total-collections').textContent = (data.totalCollections || 0).toLocaleString();
-                    document.getElementById('total-points').textContent = (data.totalPoints || 0).toLocaleString();
-                    document.getElementById('carbon-saved').textContent = (data.carbonSaved || 0).toFixed(1);
-                    if (data.monthlyData && collectionChart) updateCollectionChart(data.monthlyData);
-                    const demoNotice = document.getElementById('demo-notice');
-                    if (demoNotice) demoNotice.style.display = 'none';
+
+                const data = await response.json();
+                console.log('Verify response:', data);
+
+                if (response.ok && data.success) {
+                    verificationResult.className = 'result result-success';
+                    verificationResult.innerHTML = data.message;
+                    if (data.verified) {
+                        verificationResult.innerHTML += `<br>✅ Bonus points: +${data.bonusPoints}`;
+                    }
+                    // Reset after successful verification
+                    setTimeout(() => {
+                        currentCollectionId = null;
+                        capturedPhoto = null;
+                        currentPrediction = null;
+                        photoImg.style.display = 'none';
+                        hide(qrResultDiv);
+                        qrResultDiv.innerHTML = '';
+                        hide(aiPredictionDiv);
+                        aiPredictionDiv.innerHTML = '';
+                        verificationResult.className = 'result';
+                        verificationResult.innerHTML = '';
+                        captureBtn.disabled = true;
+                        verifyBtn.disabled = true;
+                        startScanner(); // restart scanner for next item
+                    }, 3000);
                 } else {
-                    useDemoData();
+                    verificationResult.className = 'result result-error';
+                    verificationResult.innerHTML = data.error || 'Verification failed.';
                 }
             } catch (error) {
-                console.error('Failed to load dashboard:', error);
-                useDemoData();
-            }
-        }
-
-        function useDemoData() {
-            const demoNotice = document.getElementById('demo-notice');
-            if (demoNotice) demoNotice.style.display = 'flex';
-            document.getElementById('total-users').textContent = '1,247';
-            document.getElementById('total-collections').textContent = '8,432';
-            document.getElementById('total-points').textContent = '125,430';
-            document.getElementById('carbon-saved').textContent = '23.5';
-            if (collectionChart) updateCollectionChart(generateDemoMonthlyData());
-            if (compositionChart) { compositionChart.data.datasets[0].data = [45, 30, 20, 5]; compositionChart.update(); }
-            if (weeklyChart) { weeklyChart.data.datasets[0].data = [65, 70, 68, 72, 85, 95, 88]; weeklyChart.update(); }
-            if (hourlyChart) { hourlyChart.data.datasets[0].data = generateHourlyData(); hourlyChart.update(); }
-            if (monthlyChart) { monthlyChart.data.datasets[0].data = [3200, 3450, 3800, 4120, 4450, 4780, 5120, 5480, 5820, 6150, 6480, 6820]; monthlyChart.update(); }
-        }
-
-        function generateDemoMonthlyData() {
-            const data = [];
-            for (let i = 0; i < 30; i++) {
-                data.push({
-                    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    collections: Math.floor(Math.random() * 200) + 100,
-                    waste: Math.floor(Math.random() * 500) + 300
-                });
-            }
-            return data;
-        }
-
-        function generateHourlyData() {
-            return [12, 8, 5, 3, 2, 4, 8, 15, 28, 35, 42, 48, 45, 38, 32, 35, 42, 48, 52, 45, 38, 28, 18, 10];
-        }
-
-        // ============================================
-        // CHARTS
-        // ============================================
-        function initCharts() {
-            const ctx1 = document.getElementById('collection-chart')?.getContext('2d');
-            if (ctx1) {
-                collectionChart = new Chart(ctx1, {
-                    type: 'line',
-                    data: { labels: getLast30Days(), datasets: [{ label: 'Collections', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4, pointRadius: 3 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
-                });
-            }
-            const ctx2 = document.getElementById('composition-chart')?.getContext('2d');
-            if (ctx2) {
-                compositionChart = new Chart(ctx2, {
-                    type: 'doughnut',
-                    data: { labels: ['Organic', 'Recyclable', 'Non-Recyclable', 'Hazardous'], datasets: [{ data: [45, 30, 20, 5], backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'] }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                });
-            }
-            const ctx3 = document.getElementById('weekly-chart')?.getContext('2d');
-            if (ctx3) {
-                weeklyChart = new Chart(ctx3, {
-                    type: 'bar',
-                    data: { labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], datasets: [{ label: 'Collections', data: [65, 70, 68, 72, 85, 95, 88], backgroundColor: '#22c55e', borderRadius: 8 }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-            const ctx4 = document.getElementById('hourly-chart')?.getContext('2d');
-            if (ctx4) {
-                hourlyChart = new Chart(ctx4, {
-                    type: 'line',
-                    data: { labels: Array.from({ length: 24 }, (_, i) => `${i}:00`), datasets: [{ label: 'Collections', data: generateHourlyData(), borderColor: '#3b82f6', fill: true }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-            const ctx5 = document.getElementById('monthly-chart')?.getContext('2d');
-            if (ctx5) {
-                monthlyChart = new Chart(ctx5, {
-                    type: 'line',
-                    data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], datasets: [{ label: 'Waste (kg)', data: [3200, 3450, 3800, 4120, 4450, 4780, 5120, 5480, 5820, 6150, 6480, 6820], borderColor: '#f59e0b', fill: true }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-        }
-
-        function updateCollectionChart(monthlyData) {
-            if (collectionChart && monthlyData) {
-                collectionChart.data.datasets[0].data = monthlyData.map(d => d.collections);
-                collectionChart.update();
-            }
-        }
-
-        function getLast30Days() {
-            const dates = [];
-            for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dates.push(d.toLocaleDateString()); }
-            return dates;
-        }
-
-        // ============================================
-        // EVENT HANDLERS
-        // ============================================
-        function setupEventListeners() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = item.dataset.page;
-                    showPage(page);
-                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                });
-            });
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) searchInput.addEventListener('input', (e) => { if (e.target.value.length > 2) searchData(e.target.value); });
-            loadSettings();
-        }
-
-        function showPage(pageName) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(`${pageName}-page`).classList.add('active');
-            // Load factory verifications when Factory page is shown
-            if (pageName === 'factory') {
-                loadPendingVerifications();
+                console.error('Verification error:', error);
+                verificationResult.className = 'result result-error';
+                verificationResult.innerHTML = 'Verification failed. Please try again.';
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Verify & Award Points';
             }
         }
 
         // ============================================
-        // UTILITIES
-        // ============================================
-        function updateDateTime() {
-            const now = new Date();
-            const dt = document.getElementById('date-time');
-            if (dt) dt.innerHTML = `<i class="far fa-calendar-alt"></i> ${now.toLocaleDateString()} <i class="far fa-clock"></i> ${now.toLocaleTimeString()}`;
-        }
-
-        function showNotification(message, type) {
-            const n = document.createElement('div');
-            n.className = `notification notification-${type}`;
-            n.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">×</button>`;
-            document.body.appendChild(n);
-            setTimeout(() => n.remove(), 5000);
-        }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function showNotifications() { showNotification('You have 3 unread notifications', 'info'); }
-        function searchData(term) { showNotification(`Searching for "${term}"`, 'info'); }
-        function closeDemoNotice() { document.getElementById('demo-notice').style.display = 'none'; }
-        async function refreshData() { await loadDashboardData(); if (collectionChart) collectionChart.update(); if (compositionChart) compositionChart.update(); }
-
-        function loadSettings() {
-            const email = localStorage.getItem('email_notifications');
-            const push = localStorage.getItem('push_notifications');
-            const sms = localStorage.getItem('sms_alerts');
-            const time = localStorage.getItem('default_collection_time');
-            const points = localStorage.getItem('min_points_reward');
-            if (email !== null) document.getElementById('email-notifications').checked = email === 'true';
-            if (push !== null) document.getElementById('push-notifications').checked = push === 'true';
-            if (sms !== null) document.getElementById('sms-alerts').checked = sms === 'true';
-            if (time) document.getElementById('default-collection-time').value = time;
-            if (points) document.getElementById('min-points-reward').value = points;
-        }
-
-        function saveSettings() {
-            localStorage.setItem('email_notifications', document.getElementById('email-notifications').checked);
-            localStorage.setItem('push_notifications', document.getElementById('push-notifications').checked);
-            localStorage.setItem('sms_alerts', document.getElementById('sms-alerts').checked);
-            localStorage.setItem('default_collection_time', document.getElementById('default-collection-time').value);
-            localStorage.setItem('min_points_reward', document.getElementById('min-points-reward').value);
-            showNotification('Settings saved successfully!', 'success');
-        }
-
-        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
-
-        // ============================================
-        // FACTORY VERIFICATION FUNCTIONS
+        // Pending Verifications List
         // ============================================
         async function loadPendingVerifications() {
-            const container = document.getElementById('pending-verifications');
-            if (!container) return;
             try {
                 const token = localStorage.getItem('token');
                 const res = await fetch(`${API_URL}/factory/pending`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
                 if (!data.collections || data.collections.length === 0) {
-                    container.innerHTML = '<p>No pending verifications.</p>';
+                    pendingListDiv.innerHTML = '<p>No pending verifications.</p>';
                     return;
                 }
-                let html = `
-                    <table class="table">
-                        <thead>
-                            <tr><th>ID</th><th>Household</th><th>Waste Type</th><th>Weight (kg)</th><th>Collection Date</th><th>Action</th></tr>
-                        </thead>
-                        <tbody>
-                `;
+                let html = '';
                 for (const c of data.collections) {
                     html += `
-                        <tr>
-                            <td>${c.id.slice(0,8)}...</td>
-                            <td>${c.household?.name || 'Unknown'}</td>
-                            <td>${c.segregationQuality || 'N/A'}</td>
-                            <td>${c.wasteWeight || 0}</td>
-                            <td>${new Date(c.collectionTime).toLocaleDateString()}</td>
-                            <td><button class="btn-small" onclick="verifyCollection('${c.id}')">Verify</button></td>
-                        </tr>
+                        <div class="pending-item">
+                            <div>
+                                <strong>ID:</strong> ${c.id.slice(0,8)}...<br>
+                                <strong>Household:</strong> ${c.household?.name || 'Unknown'}<br>
+                                <strong>Waste Type:</strong> ${c.segregationQuality || 'N/A'}<br>
+                                <strong>Weight:</strong> ${c.wasteWeight || 0} kg
+                            </div>
+                            <button class="btn-small" onclick="quickVerify('${c.id}')">Quick Verify</button>
+                        </div>
                     `;
                 }
-                html += '</tbody></table>';
-                container.innerHTML = html;
+                pendingListDiv.innerHTML = html;
             } catch (error) {
-                console.error('Failed to load pending verifications:', error);
-                container.innerHTML = '<p>Error loading data.</p>';
+                console.error('Failed to load pending:', error);
+                pendingListDiv.innerHTML = '<p>Error loading data.</p>';
             }
         }
 
-        async function verifyCollection(collectionId) {
+        // Quick verify without photo (for demo)
+        window.quickVerify = async function(collectionId) {
             const imageUrl = prompt('Enter image URL (or leave blank for demo):', 'https://example.com/waste.jpg');
-            if (!imageUrl) {
-                showNotification('Verification cancelled.', 'warning');
-                return;
-            }
+            if (!imageUrl) return;
             try {
                 const token = localStorage.getItem('token');
                 const res = await fetch(`${API_URL}/factory/verify`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({ collectionId, imageUrl })
                 });
                 const data = await res.json();
-                if (data.success) {
-                    showNotification(data.message, data.verified ? 'success' : 'warning');
-                    loadPendingVerifications(); // refresh list
-                    refreshData(); // refresh main stats if needed
-                } else {
-                    showNotification('Verification failed: ' + (data.error || 'Unknown error'), 'error');
-                }
+                alert(data.message);
+                loadPendingVerifications();
             } catch (error) {
-                console.error('Verification error:', error);
-                showNotification('Could not verify collection.', 'error');
+                alert('Verification failed.');
             }
+        };
+
+        // ============================================
+        // Logout
+        // ============================================
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
         }
 
-        // Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/mobile/sw.js')
-                    .then(reg => {
-                        console.log('✅ SW registered for admin dashboard');
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed') {
-                                    if (navigator.serviceWorker.controller) {
-                                        console.log('New content available, refresh to update');
-                                        showNotification('Update available! Refresh for new features.', 'info');
-                                    }
-                                }
-                            };
-                        };
-                    })
-                    .catch(err => console.log('SW registration failed:', err));
-            });
+        // ============================================
+        // Initialization
+        // ============================================
+        async function init() {
+            const auth = await checkAuth();
+            if (!auth) return;
+            await loadAIModel();
+            startCamera();
+            await loadPendingVerifications();
+            startScanBtn.addEventListener('click', startScanner);
+            stopScanBtn.addEventListener('click', stopScanner);
+            captureBtn.addEventListener('click', capturePhoto);
+            verifyBtn.addEventListener('click', verifyCollection);
         }
+
+        init();
     </script>
 </body>
 </html>
- 

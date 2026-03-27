@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
     <link rel="manifest" href="/mobile/manifest.json">
     <meta name="theme-color" content="#16a34a">
@@ -12,25 +11,18 @@
     <title>Household Dashboard - Smart Waste Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- In household dashboard -->
-    <button onclick="window.location.href='/pages/collections.html'">View All Collections</button>
-    <button onclick="window.location.href='/pages/leaderboard.html'">View Leaderboard</button>
-    <button onclick="window.location.href='/pages/rewards.html'">Rewards Marketplace</button>
-    <button onclick="window.location.href='/pages/report.html'">Report Issue</button>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
     <style>
+        /* ========== Your existing styles ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background: #f5f7fb;
         }
-
-        /* Status Bar */
         .status-bar {
             background: #1e293b;
             color: white;
@@ -43,33 +35,26 @@
             right: 0;
             z-index: 1000;
         }
-
         .status-bar .status-connected { color: #22c55e; }
         .status-bar .status-error { color: #ef4444; }
-
-        /* Dashboard Header */
         .dashboard-header {
             background: linear-gradient(135deg, #16a34a, #15803d);
             color: white;
             padding: 2rem 2rem 3rem;
             margin-top: 32px;
         }
-
         .dashboard-header-container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .dashboard-header h1 {
             font-size: 1.75rem;
             margin-bottom: 0.25rem;
         }
-
         .dashboard-header p {
             opacity: 0.9;
             font-size: 0.875rem;
         }
-
         .points-display {
             background: rgba(255, 255, 255, 0.2);
             display: inline-block;
@@ -79,8 +64,6 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
-
-        /* Dashboard Container */
         .dashboard-container {
             max-width: 1200px;
             margin: -1.5rem auto 0;
@@ -88,14 +71,11 @@
             position: relative;
             z-index: 10;
         }
-
-        /* Dashboard Grid */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
         }
-
         .dashboard-card {
             background: white;
             border-radius: 1rem;
@@ -103,16 +83,13 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s, box-shadow 0.2s;
         }
-
         .dashboard-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
-
         .dashboard-card.full-width {
             grid-column: span 2;
         }
-
         .dashboard-card h3 {
             font-size: 1rem;
             font-weight: 600;
@@ -122,8 +99,6 @@
             gap: 0.5rem;
             color: #1e293b;
         }
-
-        /* QR Code Styles */
         .qr-container {
             text-align: center;
             padding: 1rem;
@@ -131,19 +106,16 @@
             border-radius: 0.75rem;
             margin-bottom: 1rem;
         }
-
         .qr-placeholder {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1rem;
         }
-
         .qr-icon {
             font-size: 4rem;
             color: #22c55e;
         }
-
         .qr-code-display {
             display: flex;
             justify-content: center;
@@ -152,72 +124,58 @@
             background: white;
             border-radius: 0.5rem;
         }
-
         .note {
             font-size: 0.75rem;
             color: #64748b;
             text-align: center;
             margin-top: 0.5rem;
         }
-
-        /* Points Breakdown */
         .points-breakdown {
             margin-bottom: 1rem;
         }
-
         .points-stat {
             display: flex;
             justify-content: space-between;
             padding: 0.5rem 0;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .points-stat span {
             font-size: 0.875rem;
             color: #64748b;
         }
-
         .points-stat strong {
             font-size: 0.875rem;
             font-weight: 600;
             color: #22c55e;
         }
-
         .points-progress {
             margin-top: 1rem;
         }
-
         .progress-label {
             font-size: 0.75rem;
             color: #64748b;
             margin-bottom: 0.25rem;
         }
-
         .progress-bar {
             background: #e2e8f0;
             border-radius: 9999px;
             overflow: hidden;
             height: 0.5rem;
         }
-
         .progress-fill {
             background: linear-gradient(90deg, #22c55e, #16a34a);
             height: 100%;
             transition: width 0.3s ease;
         }
-
         .progress-text {
             font-size: 0.75rem;
             color: #64748b;
             margin-top: 0.25rem;
         }
-
-        /* Collections List */
         .collections-list {
             max-height: 300px;
             overflow-y: auto;
         }
-
         .collection-item {
             display: flex;
             justify-content: space-between;
@@ -226,49 +184,35 @@
             border-bottom: 1px solid #e2e8f0;
             transition: background 0.2s;
         }
-
         .collection-item:hover {
             background: #f8fafc;
         }
-
         .collection-info {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
-
         .collection-info i {
             font-size: 1rem;
         }
-
         .text-success {
             color: #22c55e;
         }
-
         .text-warning {
             color: #f59e0b;
         }
-
         .collection-points {
             font-weight: 600;
             font-size: 0.875rem;
         }
-
         .collection-points.positive {
             color: #22c55e;
         }
-
-        .collection-points.negative {
-            color: #ef4444;
-        }
-
-        /* Tips List */
         .tips-list {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
         }
-
         .tip-item {
             display: flex;
             align-items: center;
@@ -278,23 +222,18 @@
             border-radius: 0.5rem;
             transition: transform 0.2s;
         }
-
         .tip-item:hover {
             transform: translateX(5px);
         }
-
         .tip-item i {
             font-size: 1.25rem;
             color: #22c55e;
         }
-
         .tip-item p {
             font-size: 0.875rem;
             color: #334155;
             margin: 0;
         }
-
-        /* AI Classifier Styles */
         .ai-status {
             text-align: center;
             padding: 0.5rem;
@@ -302,7 +241,6 @@
             margin-bottom: 1rem;
             font-size: 0.875rem;
         }
-
         .video-container {
             position: relative;
             background: #000;
@@ -310,14 +248,12 @@
             overflow: hidden;
             margin-bottom: 1rem;
         }
-
         #video-feed {
             width: 100%;
             height: auto;
             background: #1e293b;
             display: block;
         }
-
         .video-overlay {
             position: absolute;
             bottom: 0;
@@ -330,18 +266,14 @@
             font-size: 0.75rem;
             pointer-events: none;
         }
-
         .button-group {
             display: flex;
             gap: 1rem;
             margin: 1rem 0;
         }
-
         .button-group button {
             flex: 1;
         }
-
-        /* Result Card */
         .result-card {
             background: white;
             border-radius: 0.75rem;
@@ -350,7 +282,6 @@
             border: 1px solid #e2e8f0;
             animation: slideIn 0.3s ease;
         }
-
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -361,45 +292,37 @@
                 transform: translateY(0);
             }
         }
-
         .result-header {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-bottom: 0.75rem;
         }
-
         .result-icon {
             font-size: 2rem;
         }
-
         .result-title h4 {
             font-size: 0.875rem;
             margin: 0;
         }
-
         .result-title p {
             font-size: 0.7rem;
             color: #64748b;
             margin: 0;
         }
-
         .confidence-bar-container {
             margin: 0.75rem 0;
         }
-
         .confidence-bar {
             background: #e2e8f0;
             border-radius: 9999px;
             overflow: hidden;
             height: 6px;
         }
-
         .confidence-fill {
             height: 100%;
             transition: width 0.3s ease;
         }
-
         .suggestions {
             background: #f8fafc;
             padding: 0.5rem;
@@ -407,11 +330,9 @@
             margin: 0.75rem 0;
             font-size: 0.75rem;
         }
-
         .suggestions ul {
             margin: 0.25rem 0 0 1rem;
         }
-
         .result-badge {
             display: inline-flex;
             align-items: center;
@@ -421,49 +342,39 @@
             font-size: 0.7rem;
             font-weight: 500;
         }
-
         .result-badge.success {
             background: #dcfce7;
             color: #16a34a;
         }
-
         .result-badge.warning {
             background: #fef3c7;
             color: #d97706;
         }
-
-        /* Ward Stats */
         .ward-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
             margin-bottom: 1rem;
         }
-
         .ward-stat {
             text-align: center;
             padding: 0.75rem;
             background: #f8fafc;
             border-radius: 0.5rem;
         }
-
         .ward-stat span {
             display: block;
             font-size: 0.75rem;
             color: #64748b;
             margin-bottom: 0.25rem;
         }
-
         .ward-stat strong {
             font-size: 0.875rem;
             color: #22c55e;
         }
-
         .ward-progress {
             margin-top: 1rem;
         }
-
-        /* Buttons */
         .btn-primary {
             background: #22c55e;
             color: white;
@@ -479,12 +390,10 @@
             width: 100%;
             justify-content: center;
         }
-
         .btn-primary:hover {
             background: #16a34a;
             transform: translateY(-1px);
         }
-
         .btn-outline {
             background: transparent;
             border: 1px solid #22c55e;
@@ -500,11 +409,9 @@
             width: 100%;
             justify-content: center;
         }
-
         .btn-outline:hover {
             background: #f0fdf4;
         }
-
         .btn-link {
             background: none;
             border: none;
@@ -517,13 +424,10 @@
             gap: 0.25rem;
             transition: color 0.2s;
         }
-
         .btn-link:hover {
             color: #15803d;
             text-decoration: underline;
         }
-
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -536,11 +440,9 @@
             align-items: center;
             justify-content: center;
         }
-
         .modal.active {
             display: flex;
         }
-
         .modal-content {
             background: white;
             border-radius: 1rem;
@@ -549,7 +451,6 @@
             max-height: 90vh;
             overflow-y: auto;
         }
-
         .modal-header {
             padding: 1rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
@@ -557,11 +458,9 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .modal-header h2 {
             font-size: 1.25rem;
         }
-
         .modal-close {
             background: none;
             border: none;
@@ -569,12 +468,10 @@
             cursor: pointer;
             color: #64748b;
         }
-
         .modal-body {
             padding: 1.5rem;
             text-align: center;
         }
-
         .modal-footer {
             padding: 1rem 1.5rem;
             border-top: 1px solid #e2e8f0;
@@ -582,8 +479,6 @@
             justify-content: flex-end;
             gap: 0.75rem;
         }
-
-        /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
             width: 1.5rem;
@@ -593,12 +488,9 @@
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* Notification */
         .notification {
             position: fixed;
             bottom: 2rem;
@@ -614,31 +506,24 @@
             animation: slideUp 0.3s ease;
             max-width: 400px;
         }
-
         .notification-success { border-left: 4px solid #22c55e; }
         .notification-error { border-left: 4px solid #ef4444; }
         .notification-warning { border-left: 4px solid #f59e0b; }
         .notification-info { border-left: 4px solid #3b82f6; }
-
         @keyframes slideUp {
             from { transform: translateY(100px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 2rem;
             color: #94a3b8;
         }
-
         .empty-state i {
             font-size: 3rem;
             margin-bottom: 1rem;
             color: #cbd5e1;
         }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 0 1rem 1rem;
@@ -659,7 +544,6 @@
                 gap: 0.5rem;
             }
         }
-
         @media (max-width: 480px) {
             .dashboard-header {
                 padding: 1.5rem;
@@ -671,13 +555,10 @@
     </style>
 </head>
 <body>
-    <!-- Status Bar -->
     <div class="status-bar" id="status-bar">
         <i class="fas fa-circle-notch fa-spin"></i> Connecting to backend...
-    
     </div>
 
-    <!-- Dashboard Header -->
     <div class="dashboard-header">
         <div class="dashboard-header-container">
             <h1>Welcome, <span id="household-name">Household</span>!</h1>
@@ -743,25 +624,21 @@
             <!-- AI Waste Classifier Card -->
             <div class="dashboard-card full-width">
                 <h3><i class="fas fa-brain"></i> AI Waste Classifier</h3>
-               <p class="note note-spacing">
+                <p class="note note-spacing">
                     Point your camera at waste to check if it's properly segregated
                 </p>
-                
-                <!-- AI Status Display -->
+
                 <div id="ai-status" class="ai-status"></div>
-                
-                <!-- Video Feed for Real-time Classification -->
+
                 <div class="video-container">
                     <video id="video-feed" class="video-feed" autoplay muted playsinline></video>
                     <div class="video-overlay" id="video-overlay">
                         <i class="fas fa-camera"></i> Point camera at waste
                     </div>
                 </div>
-                
-                <!-- Classification Result -->
+
                 <div id="classification-result"></div>
-                
-                <!-- Control Buttons -->
+
                 <div class="button-group">
                     <button class="btn-primary" onclick="startRealTimeClassification()">
                         <i class="fas fa-camera"></i> Start Camera
@@ -770,7 +647,7 @@
                         <i class="fas fa-stop"></i> Stop Camera
                     </button>
                 </div>
-                
+
                 <p class="note">AI will analyze the waste and tell you if it's correctly segregated</p>
             </div>
 
@@ -836,423 +713,358 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <script src="../js/ai.js"></script>
 
-   <script>
-    // ============================================
-    // CONFIGURATION
-    // ============================================
-    const API_URL = 'http://localhost:5000/api';
-    let appUser = null;
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const API_URL = 'http://localhost:5000/api';
+        let appUser = null;
 
-    // ============================================
-    // SAFE ELEMENT GETTER
-    // ============================================
-    function getElement(id) {
-        const el = document.getElementById(id);
-        if (!el) {
-            console.warn(`Element with id "${id}" not found`);
+        // ============================================
+        // SAFE ELEMENT GETTER
+        // ============================================
+        function getElement(id) {
+            const el = document.getElementById(id);
+            if (!el) console.warn(`Element with id "${id}" not found`);
+            return el;
         }
-        return el;
-    }
 
-    // ============================================
-    // STATUS BAR
-    // ============================================
-    function updateStatus(status, message) {
-        const statusBar = getElement('status-bar');
-        if (!statusBar) return;
-        
-        if (status === 'connected') {
-            statusBar.innerHTML = `<i class="fas fa-check-circle status-connected"></i> ${message}`;
-            statusBar.style.background = '#0f172a';
-        } else if (status === 'error') {
-            statusBar.innerHTML = `<i class="fas fa-exclamation-triangle status-error"></i> ${message}`;
-            statusBar.style.background = '#7f1a1a';
-        } else {
-            statusBar.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${message}`;
-            statusBar.style.background = '#1e293b';
-        }
-    }
-
-    // ============================================
-    // API CALL
-    // ============================================
-    async function apiCall(endpoint, options = {}) {
-        const token = localStorage.getItem('token');
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-        
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        
-        try {
-            const response = await fetch(`${API_URL}${endpoint}`, {
-                ...options,
-                headers
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
+        // ============================================
+        // STATUS BAR
+        // ============================================
+        function updateStatus(status, message) {
+            const statusBar = getElement('status-bar');
+            if (!statusBar) return;
+            if (status === 'connected') {
+                statusBar.innerHTML = `<i class="fas fa-check-circle status-connected"></i> ${message}`;
+                statusBar.style.background = '#0f172a';
+            } else if (status === 'error') {
+                statusBar.innerHTML = `<i class="fas fa-exclamation-triangle status-error"></i> ${message}`;
+                statusBar.style.background = '#7f1a1a';
+            } else {
+                statusBar.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${message}`;
+                statusBar.style.background = '#1e293b';
             }
-            
-            return data;
-        } catch (error) {
-            console.error('API Error:', error);
-            throw error;
         }
-    }
 
-    // ============================================
-    // AUTHENTICATION
-    // ============================================
-    async function checkAuth() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            updateStatus('error', 'No token found. Please login.');
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 2000);
-            return false;
-        }
-        
-        try {
-            updateStatus('connecting', 'Verifying credentials...');
-            const data = await apiCall('/auth/profile');
-            appUser = data.user;
-            
-            const nameEl = getElement('household-name');
-            if (nameEl) nameEl.textContent = appUser.name;
-            
-            const pointsEl = getElement('household-points');
-            if (pointsEl) pointsEl.textContent = appUser.points || 0;
-            
-            updateStatus('connected', 'Connected to backend');
-            return true;
-        } catch (error) {
-            console.error('Auth failed:', error);
-            updateStatus('error', `Auth failed: ${error.message}`);
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 2000);
-            return false;
-        }
-    }
-
-    // ============================================
-    // LOAD DASHBOARD DATA
-    // ============================================
-    async function loadDashboardData() {
-        try {
-            updateStatus('connecting', 'Loading dashboard data...');
-            
-            const stats = await apiCall('/waste/stats');
-            
-            const weekPointsEl = getElement('week-points');
-            if (weekPointsEl) weekPointsEl.textContent = `+${stats.weekPoints || 0} points`;
-            
-            const monthPointsEl = getElement('month-points');
-            if (monthPointsEl) monthPointsEl.textContent = `+${stats.monthPoints || 0} points`;
-            
-            const points = appUser?.points || 0;
-            const tierProgress = (points % 1000) / 10;
-            
-            const progressFill = getElement('points-progress-fill');
-            if (progressFill) progressFill.style.width = `${tierProgress}%`;
-            
-            const tierText = getElement('tier-text');
-            if (tierText) tierText.textContent = `${points % 1000}/1000 points to Gold Tier`;
-            
-            await loadCollections();
-            await loadTips();
-            await loadWardStats();
-            
-            updateStatus('connected', 'Connected to backend - Data loaded');
-            
-        } catch (error) {
-            console.error('Failed to load dashboard:', error);
-            updateStatus('error', `Backend error: ${error.message}`);
-            showNotification('Failed to load data from backend. Using demo data.', 'warning');
-            useDemoData();
-        }
-    }
-    
-    async function loadCollections() {
-        try {
-            const collections = await apiCall('/waste/collections');
-            const container = getElement('collections-list');
-            if (!container) return;
-            
-            const collectionsList = collections.collections || collections;
-            
-            if (!collectionsList || collectionsList.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-trash-alt"></i><p>No collections yet. Start by scanning your QR code!</p></div>';
-                return;
+        // ============================================
+        // API CALL
+        // ============================================
+        async function apiCall(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
             }
-            
-            container.innerHTML = collectionsList.slice(0, 5).map(c => `
-                <div class="collection-item">
-                    <div class="collection-info">
-                        <i class="fas ${c.segregationQuality === 'EXCELLENT' ? 'fa-check-circle text-success' : c.segregationQuality === 'GOOD' ? 'fa-star text-success' : 'fa-exclamation-circle text-warning'}"></i>
-                        <div>
-                            <strong>${c.segregationQuality === 'EXCELLENT' ? 'Excellent Segregation' : c.segregationQuality === 'GOOD' ? 'Good Segregation' : 'Needs Improvement'}</strong>
-                            <br>
-                            <small>${new Date(c.collectionTime).toLocaleString()}</small>
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                updateStatus('error', 'No token found. Please login.');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+                return false;
+            }
+            try {
+                updateStatus('connecting', 'Verifying credentials...');
+                const data = await apiCall('/auth/profile');
+                appUser = data.user;
+                const nameEl = getElement('household-name');
+                if (nameEl) nameEl.textContent = appUser.name;
+                const pointsEl = getElement('household-points');
+                if (pointsEl) pointsEl.textContent = appUser.points || 0;
+                updateStatus('connected', 'Connected to backend');
+                return true;
+            } catch (error) {
+                console.error('Auth failed:', error);
+                updateStatus('error', `Auth failed: ${error.message}`);
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+                return false;
+            }
+        }
+
+        // ============================================
+        // LOAD DASHBOARD DATA
+        // ============================================
+        async function loadDashboardData() {
+            try {
+                updateStatus('connecting', 'Loading dashboard data...');
+                const stats = await apiCall('/waste/stats');
+                const weekPointsEl = getElement('week-points');
+                if (weekPointsEl) weekPointsEl.textContent = `+${stats.weekPoints || 0} points`;
+                const monthPointsEl = getElement('month-points');
+                if (monthPointsEl) monthPointsEl.textContent = `+${stats.monthPoints || 0} points`;
+                const points = appUser?.points || 0;
+                const tierProgress = (points % 1000) / 10;
+                const progressFill = getElement('points-progress-fill');
+                if (progressFill) progressFill.style.width = `${tierProgress}%`;
+                const tierText = getElement('tier-text');
+                if (tierText) tierText.textContent = `${points % 1000}/1000 points to Gold Tier`;
+                await loadCollections();
+                await loadTips();
+                await loadWardStats();
+                updateStatus('connected', 'Connected to backend - Data loaded');
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                updateStatus('error', `Backend error: ${error.message}`);
+                showNotification('Failed to load data from backend. Using demo data.', 'warning');
+                useDemoData();
+            }
+        }
+
+        async function loadCollections() {
+            try {
+                const collections = await apiCall('/waste/collections');
+                const container = getElement('collections-list');
+                if (!container) return;
+                const collectionsList = collections.collections || collections;
+                if (!collectionsList || collectionsList.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-trash-alt"></i><p>No collections yet. Start by scanning your QR code!</p></div>';
+                    return;
+                }
+                container.innerHTML = collectionsList.slice(0, 5).map(c => `
+                    <div class="collection-item">
+                        <div class="collection-info">
+                            <i class="fas ${c.segregationQuality === 'EXCELLENT' ? 'fa-check-circle text-success' : c.segregationQuality === 'GOOD' ? 'fa-star text-success' : 'fa-exclamation-circle text-warning'}"></i>
+                            <div>
+                                <strong>${c.segregationQuality === 'EXCELLENT' ? 'Excellent Segregation' : c.segregationQuality === 'GOOD' ? 'Good Segregation' : 'Needs Improvement'}</strong>
+                                <br>
+                                <small>${new Date(c.collectionTime).toLocaleString()}</small>
+                            </div>
+                        </div>
+                        <div class="collection-points positive">
+                            +${c.pointsAwarded || 0} points
                         </div>
                     </div>
-                    <div class="collection-points positive">
-                        +${c.pointsAwarded || 0} points
-                    </div>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Failed to load collections:', error);
-            const container = getElement('collections-list');
-            if (container) container.innerHTML = '<div class="empty-state"><p>Unable to load collections</p></div>';
-        }
-    }
-    
-    async function loadTips() {
-        try {
-            const tips = await apiCall('/waste/tips');
-            const container = getElement('tips-list');
-            if (!container) return;
-            
-            const tipsList = tips.tips || tips;
-            
-            if (!tipsList || tipsList.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No tips available</p></div>';
-                return;
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load collections:', error);
+                const container = getElement('collections-list');
+                if (container) container.innerHTML = '<div class="empty-state"><p>Unable to load collections</p></div>';
             }
-            
-            container.innerHTML = tipsList.map(tip => `
-                <div class="tip-item">
-                    <i class="fas ${tip.icon || 'fa-recycle'}"></i>
-                    <p>${tip.message}</p>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Failed to load tips:', error);
-            const container = getElement('tips-list');
-            if (container) {
-                container.innerHTML = `
+        }
+
+        async function loadTips() {
+            try {
+                const tips = await apiCall('/waste/tips');
+                const container = getElement('tips-list');
+                if (!container) return;
+                const tipsList = tips.tips || tips;
+                if (!tipsList || tipsList.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No tips available</p></div>';
+                    return;
+                }
+                container.innerHTML = tipsList.map(tip => `
+                    <div class="tip-item">
+                        <i class="fas ${tip.icon || 'fa-recycle'}"></i>
+                        <p>${tip.message}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load tips:', error);
+                const container = getElement('tips-list');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="tip-item"><i class="fas fa-recycle"></i><p>Separate wet and dry waste for better points</p></div>
+                        <div class="tip-item"><i class="fas fa-water"></i><p>Rinse recyclables before disposal</p></div>
+                        <div class="tip-item"><i class="fas fa-leaf"></i><p>Compost organic waste at home</p></div>
+                    `;
+                }
+            }
+        }
+
+        async function loadWardStats() {
+            try {
+                const wardStats = await apiCall('/rewards/wards');
+                const rankEl = getElement('ward-rank');
+                if (rankEl) rankEl.textContent = '#3 out of 12';
+                const rateEl = getElement('participation-rate');
+                if (rateEl) rateEl.textContent = '78%';
+                const carbonEl = getElement('ward-carbon');
+                if (carbonEl) carbonEl.textContent = '125 kg CO₂';
+                const goalEl = getElement('ward-goal');
+                if (goalEl) goalEl.textContent = '1000';
+                const progressFill = getElement('ward-progress-fill');
+                if (progressFill) progressFill.style.width = '65%';
+                const progressText = getElement('ward-progress-text');
+                if (progressText) progressText.textContent = '650/1000 points';
+            } catch (error) {
+                console.error('Failed to load ward stats:', error);
+                const rankEl = getElement('ward-rank');
+                if (rankEl) rankEl.textContent = '#3 out of 12';
+                const rateEl = getElement('participation-rate');
+                if (rateEl) rateEl.textContent = '78%';
+                const carbonEl = getElement('ward-carbon');
+                if (carbonEl) carbonEl.textContent = '125 kg CO₂';
+                const goalEl = getElement('ward-goal');
+                if (goalEl) goalEl.textContent = '1000';
+                const progressFill = getElement('ward-progress-fill');
+                if (progressFill) progressFill.style.width = '65%';
+                const progressText = getElement('ward-progress-text');
+                if (progressText) progressText.textContent = '650/1000 points';
+            }
+        }
+
+        // ============================================
+        // DEMO DATA (Fallback)
+        // ============================================
+        function useDemoData() {
+            const weekPoints = getElement('week-points');
+            if (weekPoints) weekPoints.textContent = '+85 points';
+            const monthPoints = getElement('month-points');
+            if (monthPoints) monthPoints.textContent = '+320 points';
+            const progressFill = getElement('points-progress-fill');
+            if (progressFill) progressFill.style.width = '65%';
+            const tierText = getElement('tier-text');
+            if (tierText) tierText.textContent = '650/1000 points to Gold Tier';
+            const collectionsList = getElement('collections-list');
+            if (collectionsList) {
+                collectionsList.innerHTML = `
+                    <div class="collection-item">
+                        <div class="collection-info">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div><strong>Excellent Segregation</strong><br><small>Today, 10:30 AM</small></div>
+                        </div>
+                        <div class="collection-points positive">+15 points</div>
+                    </div>
+                    <div class="collection-item">
+                        <div class="collection-info">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div><strong>Good Segregation</strong><br><small>Yesterday, 9:15 AM</small></div>
+                        </div>
+                        <div class="collection-points positive">+12 points</div>
+                    </div>
+                `;
+            }
+            const tipsList = getElement('tips-list');
+            if (tipsList) {
+                tipsList.innerHTML = `
                     <div class="tip-item"><i class="fas fa-recycle"></i><p>Separate wet and dry waste for better points</p></div>
                     <div class="tip-item"><i class="fas fa-water"></i><p>Rinse recyclables before disposal</p></div>
                     <div class="tip-item"><i class="fas fa-leaf"></i><p>Compost organic waste at home</p></div>
                 `;
             }
+            showNotification('Using demo data - Backend not connected', 'warning');
         }
-    }
-    
-    async function loadWardStats() {
-        try {
-            const wardStats = await apiCall('/rewards/wards');
-            
-            const rankEl = getElement('ward-rank');
-            if (rankEl) rankEl.textContent = '#3 out of 12';
-            
-            const rateEl = getElement('participation-rate');
-            if (rateEl) rateEl.textContent = '78%';
-            
-            const carbonEl = getElement('ward-carbon');
-            if (carbonEl) carbonEl.textContent = '125 kg CO₂';
-            
-            const goalEl = getElement('ward-goal');
-            if (goalEl) goalEl.textContent = '1000';
-            
-            const progressFill = getElement('ward-progress-fill');
-            if (progressFill) progressFill.style.width = '65%';
-            
-            const progressText = getElement('ward-progress-text');
-            if (progressText) progressText.textContent = '650/1000 points';
-        } catch (error) {
-            console.error('Failed to load ward stats:', error);
-            const rankEl = getElement('ward-rank');
-            if (rankEl) rankEl.textContent = '#3 out of 12';
-            const rateEl = getElement('participation-rate');
-            if (rateEl) rateEl.textContent = '78%';
-            const carbonEl = getElement('ward-carbon');
-            if (carbonEl) carbonEl.textContent = '125 kg CO₂';
-            const goalEl = getElement('ward-goal');
-            if (goalEl) goalEl.textContent = '1000';
-            const progressFill = getElement('ward-progress-fill');
-            if (progressFill) progressFill.style.width = '65%';
-            const progressText = getElement('ward-progress-text');
-            if (progressText) progressText.textContent = '650/1000 points';
+
+        // ============================================
+        // QR CODE FUNCTIONS
+        // ============================================
+        function showQRCode() {
+            const modal = getElement('qr-modal');
+            const qrDisplay = getElement('qr-code-display');
+            if (!modal || !qrDisplay) return;
+            const qrData = JSON.stringify({
+                userId: appUser?.id || 'USER001',
+                name: appUser?.name || 'Household User',
+                address: appUser?.address || '123 Green Street',
+                qrCode: appUser?.qrCode || generateQRCode(),
+                timestamp: new Date().toISOString()
+            });
+            qrDisplay.innerHTML = '';
+            new QRCode(qrDisplay, {
+                text: qrData,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            modal.classList.add('active');
         }
-    }
-    
-    // ============================================
-    // DEMO DATA (Fallback)
-    // ============================================
-    function useDemoData() {
-        const weekPoints = getElement('week-points');
-        if (weekPoints) weekPoints.textContent = '+85 points';
-        
-        const monthPoints = getElement('month-points');
-        if (monthPoints) monthPoints.textContent = '+320 points';
-        
-        const progressFill = getElement('points-progress-fill');
-        if (progressFill) progressFill.style.width = '65%';
-        
-        const tierText = getElement('tier-text');
-        if (tierText) tierText.textContent = '650/1000 points to Gold Tier';
-        
-        const collectionsList = getElement('collections-list');
-        if (collectionsList) {
-            collectionsList.innerHTML = `
-                <div class="collection-item">
-                    <div class="collection-info">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <div><strong>Excellent Segregation</strong><br><small>Today, 10:30 AM</small></div>
-                    </div>
-                    <div class="collection-points positive">+15 points</div>
-                </div>
-                <div class="collection-item">
-                    <div class="collection-info">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <div><strong>Good Segregation</strong><br><small>Yesterday, 9:15 AM</small></div>
-                    </div>
-                    <div class="collection-points positive">+12 points</div>
-                </div>
+
+        function closeQRModal() {
+            const modal = getElement('qr-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qr-code-display canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'my-waste-qr.png';
+                link.href = canvas.toDataURL();
+                link.click();
+                showNotification('QR Code downloaded!', 'success');
+            }
+        }
+
+        function generateQRCode() {
+            return 'QR_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;margin-left:auto;">×</button>
             `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
         }
-        
-        const tipsList = getElement('tips-list');
-        if (tipsList) {
-            tipsList.innerHTML = `
-                <div class="tip-item"><i class="fas fa-recycle"></i><p>Separate wet and dry waste for better points</p></div>
-                <div class="tip-item"><i class="fas fa-water"></i><p>Rinse recyclables before disposal</p></div>
-                <div class="tip-item"><i class="fas fa-leaf"></i><p>Compost organic waste at home</p></div>
-            `;
+
+        function viewRewards() {
+            window.location.href = '/pages/rewards.html';
         }
-        
-        showNotification('Using demo data - Backend not connected', 'warning');
-    }
-    
-    // ============================================
-    // QR CODE FUNCTIONS
-    // ============================================
-    function showQRCode() {
-        const modal = getElement('qr-modal');
-        const qrDisplay = getElement('qr-code-display');
-        if (!modal || !qrDisplay) return;
-        
-        const qrData = JSON.stringify({
-            userId: appUser?.id || 'USER001',
-            name: appUser?.name || 'Household User',
-            address: appUser?.address || '123 Green Street',
-            qrCode: appUser?.qrCode || generateQRCode(),
-            timestamp: new Date().toISOString()
-        });
-        
-        qrDisplay.innerHTML = '';
-        new QRCode(qrDisplay, {
-            text: qrData,
-            width: 200,
-            height: 200,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        });
-        
-        modal.classList.add('active');
-    }
-    
-    function closeQRModal() {
-        const modal = getElement('qr-modal');
-        if (modal) modal.classList.remove('active');
-    }
-    
-    function downloadQR() {
-        const canvas = document.querySelector('#qr-code-display canvas');
-        if (canvas) {
-            const link = document.createElement('a');
-            link.download = 'my-waste-qr.png';
-            link.href = canvas.toDataURL();
-            link.click();
-            showNotification('QR Code downloaded!', 'success');
+
+        function viewAllCollections() {
+            window.location.href = '/pages/collections.html';
         }
-    }
-    
-    function generateQRCode() {
-        return 'QR_' + Math.random().toString(36).substr(2, 9);
-    }
-    
-    // ============================================
-    // UTILITIES
-    // ============================================
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;margin-left:auto;">×</button>
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
-    }
-    
-    function viewRewards() {
-        window.location.href = '/pages/rewards.html';
-    }
-    
-    function viewAllCollections() {
-        window.location.href = '/pages/collections.html';
-    }
-    
-    function logout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login.html';
-    }
-    
-    // ============================================
-    // AI FUNCTIONS
-    // ============================================
-    function startRealTimeClassification() {
-        if (typeof startRealTimeClassificationAI === 'function') {
-            startRealTimeClassificationAI();
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        // ============================================
+        // AI FUNCTIONS (wrappers for ai.js)
+        // ============================================
+        // Note: startRealTimeClassification and stopRealTimeClassification are defined in ai.js
+        // We simply call them. The ai.js script will load the model and handle camera.
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function init() {
+            const isAuth = await checkAuth();
+            if (!isAuth) return;
+            await loadDashboardData();
+            const aiStatus = getElement('ai-status');
+            if (aiStatus) {
+                aiStatus.innerHTML = '<span class="status-loading"><i class="fas fa-circle-notch fa-spin"></i> AI Ready</span>';
+            }
+            setInterval(loadDashboardData, 30000);
+        }
+
+        // Start the application when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
         } else {
-            showNotification('AI camera feature coming soon!', 'info');
+            init();
         }
-    }
-    
-    function stopRealTimeClassification() {
-        if (typeof stopRealTimeClassificationAI === 'function') {
-            stopRealTimeClassificationAI();
-        } else {
-            console.log('AI camera stopped');
-        }
-    }
-    
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-    async function init() {
-        const isAuth = await checkAuth();
-        if (!isAuth) return;
-        
-        await loadDashboardData();
-        
-        const aiStatus = getElement('ai-status');
-        if (aiStatus) {
-            aiStatus.innerHTML = '<span class="status-loading"><i class="fas fa-circle-notch fa-spin"></i> AI Ready</span>';
-        }
-        
-        setInterval(loadDashboardData, 30000);
-    }
-    
-    // Start the application when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-</script>
+    </script>
 </body>
 </html>

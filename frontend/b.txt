@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- In your HTML head -->
     <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Waste Management - AI Powered Waste Solution</title>
@@ -10,11 +12,18 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="./mobile/manifest.json">
+
+    <!-- Theme Color -->
     <meta name="theme-color" content="#16a34a">
+
+    <!-- Apple PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Smart Waste">
+
 </head>
 <body>
     <!-- Navigation -->
@@ -25,10 +34,9 @@
                 <span>SmartWaste</span>
             </div>
             <div class="nav-links">
-                <a href="login.html">Admin</a>
-                <a href="login.html">Collector</a>
-                <a href="login.html">Household</a>
-                <a href="login.html">Factory</a>
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#demo">Demo</a>
                 <a href="login.html" class="btn btn-outline">Login</a>
                 <a href="register.html" class="btn btn-primary">Get Started</a>
             </div>
@@ -54,6 +62,9 @@
                     <a href="register.html" class="btn btn-primary btn-large">
                         <i class="fas fa-recycle"></i> Start Recycling
                     </a>
+                    <button class="btn btn-outline btn-large" onclick="scrollToDemo()">
+                        <i class="fas fa-play"></i> Watch Demo
+                    </button>
                 </div>
             </div>
         </div>
@@ -93,22 +104,30 @@
             <h2 class="section-title">Key Features</h2>
             <div class="features-grid">
                 <div class="feature-card hover-lift">
-                    <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+                    <div class="feature-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
                     <h3>QR Code Tracking</h3>
                     <p>Each bin has unique QR code for complete waste journey tracking from household to recycling center.</p>
                 </div>
                 <div class="feature-card hover-lift">
-                    <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
                     <h3>AI Waste Detection</h3>
                     <p>Advanced AI camera automatically classifies waste type and checks segregation quality.</p>
                 </div>
                 <div class="feature-card hover-lift">
-                    <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
                     <h3>Route Optimization</h3>
                     <p>Smart algorithms optimize collection routes based on fill levels, traffic, and priority areas.</p>
                 </div>
                 <div class="feature-card hover-lift">
-                    <div class="feature-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
                     <h3>Rewards System</h3>
                     <p>Earn points for proper segregation and redeem them for exciting rewards and discounts.</p>
                 </div>
@@ -149,6 +168,23 @@
         </div>
     </section>
 
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <h2 class="section-title">Live Demo</h2>
+            <div class="demo-container">
+                <div class="demo-tabs">
+                    <button class="demo-tab active" onclick="showDemo('household')">Household</button>
+                    <button class="demo-tab" onclick="showDemo('collector')">Collector</button>
+                    <button class="demo-tab" onclick="showDemo('admin')">Admin</button>
+                </div>
+                <div id="demo-content" class="demo-content">
+                    <!-- Dynamic content via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta">
         <div class="container">
@@ -171,35 +207,118 @@
                 </div>
                 <div class="footer-col">
                     <h4>Quick Links</h4>
-                    <ul><li><a href="#">About Us</a></li><li><a href="#features">Features</a></li><li><a href="#">Pricing</a></li></ul>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Support</h4>
-                    <ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Privacy Policy</a></li></ul>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Download App</h4>
                     <p>Coming soon on iOS and Android</p>
-                    <div class="app-badges"><i class="fab fa-apple"></i><i class="fab fa-android"></i></div>
+                    <div class="app-badges">
+                        <i class="fab fa-apple"></i>
+                        <i class="fab fa-android"></i>
+                    </div>
                 </div>
             </div>
-            <div class="footer-bottom"><p>&copy; 2026 SmartWaste Management. All rights reserved.</p></div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 SmartWaste Management. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        function toggleMobileMenu() { document.querySelector('.nav-links').classList.toggle('active'); }
+        function scrollToDemo() {
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        }
 
-        // Service Worker (unchanged)
+        function toggleMobileMenu() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        }
+
+        function showDemo(type) {
+            const demoContent = document.getElementById('demo-content');
+            const tabs = document.querySelectorAll('.demo-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (type === 'household') {
+                demoContent.innerHTML = `
+                    <div class="demo-card animate-fade-in">
+                        <div class="demo-stats">
+                            <div class="demo-stat"><i class="fas fa-star"></i> <span>⭐ 1,250 Points</span></div>
+                            <div class="demo-stat"><i class="fas fa-leaf"></i> <span>45 kg CO₂ Saved</span></div>
+                        </div>
+                        <div class="demo-message success">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Last collection: +10 points for proper segregation!</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="alert('QR Code would appear here')">
+                            <i class="fas fa-qrcode"></i> View My QR Code
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'collector') {
+                demoContent.innerHTML = `
+                    <div class="demo-card animate-fade-in">
+                        <div class="demo-progress">
+                            <div class="progress-label">Today's Collections: 12/25</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: 48%"></div></div>
+                        </div>
+                        <div class="demo-location"><i class="fas fa-location-dot"></i><p>📍 Next: Green Society A (85% full, 5 mins away)</p></div>
+                        <button class="btn btn-primary" onclick="alert('Starting optimized route...')"><i class="fas fa-route"></i> Start Collection Route</button>
+                    </div>
+                `;
+            } else {
+                demoContent.innerHTML = `
+                    <div class="demo-card animate-fade-in">
+                        <div class="demo-stats-grid">
+                            <div class="demo-stat-card"><h3>1,247</h3><p>Total Collections</p></div>
+                            <div class="demo-stat-card"><h3>8,740</h3><p>Points Awarded</p></div>
+                        </div>
+                        <div class="demo-prediction"><i class="fas fa-robot"></i><p>🤖 AI Prediction: 40% increase expected this weekend</p></div>
+                    </div>
+                `;
+            }
+        }
+        
+        showDemo('household');
+    </script>
+    <script>
+        // Register Service Worker for PWA functionality
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/mobile/sw.js')
-                    .then(reg => console.log('✅ Service Worker registered:', reg))
-                    .catch(err => console.log('❌ Service Worker registration failed:', err));
+                    .then(registration => {
+                        console.log('✅ Service Worker registered successfully:', registration);
+                    })
+                    .catch(error => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
             });
         }
+        
+        // Optional: Show install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show install button if you have one
+            const installBtn = document.getElementById('install-btn');
+            if (installBtn) installBtn.style.display = 'block';
+        });
     </script>
 </body>
 </html>
+
