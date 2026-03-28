@@ -1,19 +1,10 @@
-I'll create a comprehensive, winning README.md for your Smart Waste Management System hackathon project. This will impress judges with its completeness and professionalism.
 
 ## 📁 **File: README.md**
 
-```markdown
 # ♻️ Smart Waste Management System
 
 ## AI-Powered Waste Management Solution for Sustainable Cities
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)](https://www.prisma.io/)
-[![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-AI-FF6F00)](https://www.tensorflow.org/js)
-[![Socket.io](https://img.shields.io/badge/Socket.io-Realtime-010101)](https://socket.io/)
-
----
 
 ## 🏆 **Problem Statement**
 
@@ -311,21 +302,6 @@ OPENWEATHER_API_KEY=""
 
 ---
 
-## 🎨 **Screenshots**
-
-### Admin Dashboard
-![Admin Dashboard](https://via.placeholder.com/800x400?text=Admin+Dashboard+with+Charts+and+Analytics)
-
-### Household Dashboard
-![Household Dashboard](https://via.placeholder.com/800x400?text=Household+Dashboard+with+QR+Code+and+Points)
-
-### AI Waste Classifier
-![AI Classifier](https://via.placeholder.com/800x400?text=AI+Waste+Classification+in+Action)
-
----
-
-
-
 ### What Makes This Project Stand Out:
 
 1. ✅ **Working AI** - Real TensorFlow.js waste classification in browser
@@ -401,12 +377,13 @@ docker run -p 5000:5000 -p 3000:3000 smart-waste
 
 ## 👥 **Team**
 
-|       Role            |     Name            |    Contribution                        |
-|-----------------------|---------------------|----------------------------------------|
-| Lead Developer        |    Your Name        | Full-stack development, AI integration |
-| Frontend Developer    | Team Member         | UI/UX, dashboards                      |
-| Backend Developer     | Team Member         | API, database, WebSocket               |
-| AI/ML Engineer        | Team Member         | TensorFlow.js, predictions             |
+|       Role                  |     Name                      |    Contribution                        |
+|-----------------------------|-------------------------------|----------------------------------------|
+| Team Lead                   | Rajneesh Rajput               | Full-stack                             |
+| AI/ML Engineer              | Rahul Sharma                  | Development, AI integration            |
+| Frontend Developer          | Pragyan Kumar                 | Dashboards                             |
+| Interface Design            | Sikhar Chaturvedi             | UI/UX                                  |
+| Data collection & researcher| Shalini Tiwari & Anushka Sinha| Data collection & research             |
 
 ---
 
